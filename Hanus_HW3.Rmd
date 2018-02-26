@@ -1,0 +1,481 @@
+---
+title: "Homework 3"
+author: "Nichole Hanus"
+date: "Sunday, October 30, 2016"
+output: pdf_document
+---
+
+```{r, include=FALSE, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+## Set the directory
+setwd("C:/Users/hanusnil/Dropbox/S11. 19-786 Stochastic Discrete Choice Models/Homework 3")
+
+# install.packages("mlogit")
+library("mlogit")
+
+## for pretty tables
+install.packages("knitr", repos = "http://cran.us.r-project.org")
+library(knitr) 
+
+## Install data from Koppelman & Wen, 2000
+data("ModeCanada", package = "mlogit")
+
+
+```
+
+
+# Problem 1: 
+## Prove that the GEV conditions hold for the nested logit model when two alternatives are not in the same nest.
+
+The following conditions must be met in order to construct a generalized extreme value (GEV) model:
+
+1.  G() is homogeneous of degree one.
+2.  If any of its arguments $y_{i} \rightarrow \infty$ then $G(y_{1},y_{2}, ... y_{j}) \rightarrow \infty$.
+3.  For any dinstinct arguments $y_{1},...,y_{k}$, $\frac{\delta^{k}G}{\delta y_{1},...\delta y_{k}}$ is non-negative if $k$ is odd and non-positive if $k$ is even.
+
+From inspection of the lecture notes, it is obvious that the first two conditions are met when two alternatives are not in the same nest just as they are met if both alternatives are in the same nest. To demonstrate that the third condition is met when two alternatives are not in the same nest, we first set up our generation model to include two nests:
+
+\begin{align}
+G(y_{1}, y_{2},...,y_{j}) &= \sum_{c} \left( \sum_{j \in c} y_{j}^{1/\lambda_{c}}    \right)^{\lambda_{c}}  \nonumber \\ 
+&= \left( \sum_{j \in c_{1}} y_{j}^{1/\lambda_{c_{1}}} \right)^{\lambda_{c_{1}}} + \left( \sum_{i \in c_{2}} y_{i}^{1/\lambda_{c_{2}}} \right)^{\lambda_{c_{2}}} \nonumber
+\end{align}
+
+Next, we take the first derivative with repect to any $y_{k}$ in nest $c_{1}$:
+\begin{align}
+\frac{\delta G}{\delta y_{k}} &= \frac{\delta}{\delta y_{k}} \left( \sum_{j \in c_{1}} y_{j}^{1/\lambda_{c_{1}}} \right)^{\lambda_{c_{1}}} + \left( \sum_{i \in c_{2}} y_{i}^{1/\lambda_{c_{2}}} \right)^{\lambda_{c_{2}}} \nonumber \\
+&= \lambda_{c_{1}} \left( \sum_{j \in c_{1}} y_{j}^{1/\lambda_{c_{1}}} \right)^{\lambda_{c_{1}-1}} \frac{1}{\lambda_{c_{1}}}y_{k}^{1/\lambda_{c_{1}-1}} \nonumber \\ 
+&= \left( \sum_{j \in c_{1}} y_{j}^{1/\lambda_{c_{1}}} \right)^{\lambda_{c_{1}-1}}y_{k}^{1/\lambda_{c_{1}-1}} \nonumber
+\end{align}
+
+Now, suppose we take the second partial derivative with respect to an alternative in the second nest. Since the second nest doesn't exist in the first partial derivative, the second derivative and all higher order derivatives equal zero:
+
+\begin{align}
+\frac{\delta G}{\delta y_{k} \delta y_{z}} &=  \frac{\delta}{\delta y_{z}}\left( \sum_{j \in c_{1}} y_{j}^{1/\lambda_{c_{1}}} \right)^{\lambda_{c_{1}-1}}y_{k}^{1/\lambda_{c_{1}-1}} \nonumber \\
+\frac{\delta G}{\delta y_{k} \delta y_{z}} &= 0 \nonumber
+\end{align}
+
+Therefore, all higher order derivatives meet the condition that they alternate between non-positive and non-negative as they switch from even to odd. 
+
+# Problem 2: 
+## Show that we only need to know the 2nd partial derivatives for the paired combinatorial logit (PCL) to verify the GEV conditions.
+
+Demonstrating that you only need to know the 2nd partial derivatives for the PCL model is very similar to demonstrating that the third GEV condition holds for the nested logit model when two alternatives are not in the same nest. To demonstrate, I start with the second partial derivative with respect to alternative $j$ as illustrated in Davis and De la Maza (2016):
+
+\begin{align}
+\frac{\delta^{2} G}{\delta y_{i} \delta y_{j}} &=  \frac{\delta}{\delta y_{j}}\sum_{l \neq i}^{J} (y_{i}^{1/\lambda_{il}}+y_{l}^{1/\lambda_{il}})^{\lambda_{il}-1}y_{i}^{1/\lambda_{il}-1} \nonumber \\
+&= (\lambda_{ij}-1)(y_{i}^{1/\lambda_{il}}+y_{j}^{1/\lambda_{il}})^{\lambda_{il}-2}y_{i}^{1/\lambda_{il}-1}y_{j}^{1/\lambda_{il}-1} \nonumber
+\end{align}
+
+
+If we want to take a third derivative with respect to $y_{k}$ we see that this alternative doesn't exist in the second derivative of $G$. 
+
+\begin{align}
+\frac{\delta^{3} G}{\delta y_{i} \delta y_{j} \delta y_{k}} &=  \frac{\delta}{\delta y_{k}}(\lambda_{ij}-1)(y_{i}^{1/\lambda_{il}}+y_{j}^{1/\lambda_{il}})^{\lambda_{il}-2}y_{i}^{1/\lambda_{il}-1}y_{j}^{1/\lambda_{il}-1} \nonumber \\
+&= 0 \nonumber
+\end{align}
+
+Therefore, the third derivative is 0 as are all other higher derivatives. Thus, all higher order derivatives meet the condition that they alternate between non-positive and non-negative as they switch from even to odd.
+
+
+# Problem 3: 
+## Replicate the results from Table 5. Comment on any discrepencies. Are the estimated parameters in each model reasonable?
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+## Problem 3: Replicate the results from Table 5.
+
+## First clean the data and prepare it for mlogit
+## Drop the bus data from the analysis:
+busUsers <- with(ModeCanada, case[choice == 1 & alt == "bus"])
+MC <- subset(ModeCanada, !case %in% busUsers & alt != "bus" & nchoice == 4)
+MC$alt <- MC$alt[drop = TRUE]
+
+## Next, convert to mlogit data format:
+MC <- mlogit.data(MC,
+                  shape = "long",
+                  chid.var = "case",
+                  alt.var = "alt",
+                  choice = "choice",
+                  drop.index = TRUE)
+
+
+
+## Now, consider the multinomial logit (MNL) model:
+Table5.MNL <- mlogit(choice ~ freq + cost + ivt + ovt |1, data = MC, reflevel = "car")
+kable(coefficients(summary(Table5.MNL)), digits = 3)
+
+## Next, consider the paired combinatorial logit (PCL) model:
+## First PC is with train-car similarity
+Table5.PCL1 <- mlogit(choice ~ freq + cost + ivt + ovt |1, 
+                      data = MC, 
+                      reflevel = "car",
+                      nests = list(nest1 = c("train", "car"), 
+                                   nest2 = c("train","air"),
+                                   nest3 = c("car","air")),
+                      constPar = c("iv.nest2", "iv.nest3"))
+kable(coefficients(summary(Table5.PCL1)), digits = 3)
+
+## Second PC is with air-car similarity
+Table5.PCL2 <- mlogit(choice ~ freq + cost + ivt + ovt |1, 
+                      data = MC, 
+                      reflevel = "car",
+                      nests = list(nest1 = c("train", "car"), 
+                                   nest2 = c("train","air"),
+                                   nest3 = c("car","air")),
+                      constPar = c("iv.nest1", "iv.nest2"))
+kable(coefficients(summary(Table5.PCL2)), digits = 3)
+
+
+## Third PC is with both train-car similarity and air-car similarity
+Table5.PCL3 <- mlogit(choice ~ freq + cost + ivt + ovt |1, 
+                      data = MC, 
+                      reflevel = "car",
+                      nests = list(nest1 = c("train", "car"), 
+                                   nest2 = c("train","air"),
+                                   nest3 = c("car","air")),
+                      constPar = c("iv.nest2"))
+kable(coefficients(summary(Table5.PCL3)), digits = 3)
+
+
+
+## Finally, consider the nested logit (NL) models
+## Train-car nested (train and car in a nest):
+Table5.NL1 <- mlogit(choice ~ freq + cost + ivt + ovt |1,
+              data = MC,
+              reflevel = "car",
+              nests = list(nest1 = c("train", "car"),
+                           nest2 = "air"),
+              unscaled = FALSE,
+              constPar = c("iv.nest2"))
+kable(coefficients(summary(Table5.NL1)), digits = 3)
+
+
+## Air-car nested (air and car in a nest):
+Table5.NL2 <- mlogit(choice ~ freq + cost + ivt + ovt |1,
+              data = MC,
+              reflevel = "car",
+              nests = list(nest1 = c("air", "car"),
+                           nest2 = "train"),
+              unscaled = FALSE,
+              constPar = c("iv.nest2"))
+kable(coefficients(summary(Table5.NL2)), digits = 3)
+
+```
+
+# Problem 4: 
+## Calculate the implied WTP for reduced in-vehicle and out of vehicle time. Comment on the results.
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+## Problem 4: Find the implied WTPs of IVT and OVT for each model
+## Assume travel time is in minutes and the "Value of time"
+## estimates are in units of an hour (i.e. "Value of an hour").
+
+## MNL WTPs:
+IVT.wtp.MNL <- -(coefficients(Table5.MNL)[5]/coefficients(Table5.MNL)[4])*60
+OVT.wtp.MNL <- -(coefficients(Table5.MNL)[6]/coefficients(Table5.MNL)[4])*60
+
+
+
+## PCL WTPs:
+## First PC is with train-car similarity
+IVT.wtp.PCL1 <- -(coefficients(Table5.PCL1)[5]/coefficients(Table5.PCL1)[4])*60
+OVT.wtp.PCL1 <- -(coefficients(Table5.PCL1)[6]/coefficients(Table5.PCL1)[4])*60
+
+## Second PC is with air-car similarity
+IVT.wtp.PCL2 <- -(coefficients(Table5.PCL2)[5]/coefficients(Table5.PCL2)[4])*60
+OVT.wtp.PCL2 <- -(coefficients(Table5.PCL2)[6]/coefficients(Table5.PCL2)[4])*60
+
+## Third PC is with both train-car similarity and air-car similarity
+IVT.wtp.PCL3 <- -(coefficients(Table5.PCL3)[5]/coefficients(Table5.PCL3)[4])*60
+OVT.wtp.PCL3 <- -(coefficients(Table5.PCL3)[6]/coefficients(Table5.PCL3)[4])*60
+
+
+
+## NL WTPs:
+## Train-car nested (train and car in a nest):
+IVT.wtp.NL1 <- -(coefficients(Table5.NL1)[5]/coefficients(Table5.NL1)[4])*60
+OVT.wtp.NL1 <- -(coefficients(Table5.NL1)[6]/coefficients(Table5.NL1)[4])*60
+
+## Air-car nested (air and car in a nest):
+IVT.wtp.NL2 <- -(coefficients(Table5.NL2)[5]/coefficients(Table5.NL2)[4])*60
+OVT.wtp.NL2 <- -(coefficients(Table5.NL2)[6]/coefficients(Table5.NL2)[4])*60
+
+```
+
+Here are the results for the willingness to pay for in-vehicle time and out-vehicle time in each model:
+
+1. MNL IVT WTP: `r round(-IVT.wtp.MNL, digits = 3)`
+
+2. MNL OVT WTP: `r round(-OVT.wtp.MNL, digits = 3)`
+
+3. PCL1 IVT WTP: `r round(-IVT.wtp.PCL1, digits = 3)`
+
+4. PCL1 OVT WTP: `r round(-OVT.wtp.PCL1, digits = 3)`
+
+5. PCL2 IVT WTP: `r round(-IVT.wtp.PCL2, digits = 3)`
+
+6. PCL2 OVT WTP: `r round(-OVT.wtp.PCL2, digits = 3)`
+
+7. PCL3 IVT WTP: `r round(-IVT.wtp.PCL3, digits = 3)`
+
+8. PCL3 OVT WTP: `r round(-OVT.wtp.PCL3, digits = 3)`
+
+9. NL1 IVT WTP: `r round(-IVT.wtp.NL1, digits = 3)`
+
+10. NL1 OVT WTP: `r round(-OVT.wtp.NL1, digits = 3)`
+
+11. NL2 IVT WTP: `r round(-IVT.wtp.NL2, digits = 3)`
+
+12. NL2 OVT WTP: `r round(-OVT.wtp.NL2, digits = 3)`
+
+In each model, the willingness to pay to reduce out of vehicle time (spent waiting) is greater than the willingness to pay to reduce the time spent inside the vehicle. Which is reasonable, as people probably feel more productive when in-transit than when waiting around to switch trains or catch a flight. It seems that the third PCL model, which includes a train-car and air-car similarity nest, seems to estimate the highest WTP for IVT and OVT. This suggests that this model capturing more of the nuances that people consider when picking their travel mode. (I wish I had more time to think about this.)
+
+# Problem 5: 
+## Use likelihood ratio tests using the lrtest(mod1, mod2) command, where mod1 and mod2 are fitted models. What model best fits the data? Do you think it is justified to use this model?
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+## Problem 5: Use the log-likelihood tests to find the best model
+
+## Compare PCL1 vs PCL2
+lrtest(Table5.MNL, Table5.PCL1)
+lrtest(Table5.MNL, Table5.PCL2)
+lrtest(Table5.MNL, Table5.PCL3)
+lrtest(Table5.MNL, Table5.NL1)
+lrtest(Table5.MNL, Table5.NL2)
+
+```
+
+The results of the iterative likelihood ratio tests suggest that the PCL and second nested logit (air-car) perform better than the other models (i.e. the data has a higher probability of appearing in those models than the other models).
+
+# Problem 6: 
+## What are the implied correlations of the utilities of the different alternatives based on your model? Do the results make sense? Why or why not?
+
+I was unable to determine the correct relationship between the reported similarity parameters for the PCL and the reported utility correlations in the paper. Therefore, I turned my focuse to the second nested logit which performed better than the first. 
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+## Problem 6: Find the utility correlations for
+## train-car and air-car for the NL2 model
+
+AirCarNL2.corr <- 1-coefficients(Table5.NL2)[7]^2
+
+```
+
+I found the implied correlations of the utilities of different alternatives for the second nested logit (air-car) based on my model are `r round(AirCarNL2.corr, digits = 3)`.
+
+# Problem 7: 
+## Calculate Table 6 using the following code to calculate elasticities at the average values of attributes for each alternative. What do you conclude?
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+## Problem 7: Replicate Table 6 
+
+## Start with this code to capture coefficient means
+z1 <- with(MC, data.frame(freq = tapply(freq, index(MC)$alt, mean),
+                          cost = tapply(cost, index(MC)$alt, mean),
+                          ivt = tapply(ivt, index(MC)$alt, mean),
+                          ovt = tapply(ovt, index(MC)$alt, mean)))
+
+## Start with MNL: (1 - Pi)Beta_k*x_ik
+coefs.mnl <- coefficients(Table5.MNL)[1:6]
+
+mean.train <- c(1, 0, z1[1,1], z1[1,2], z1[1,3], z1[1,4])
+u.train <- t(coefs.mnl) %*% mean.train
+exp.train <- exp(u.train)
+
+mean.car <- c(0, 0, z1[3,1], z1[3,2], z1[3,3], z1[3,4])
+u.car <- t(coefs.mnl) %*% mean.car
+exp.car <- exp(u.car)
+
+mean.air <- c(0, 1, z1[2,1], z1[2,2], z1[2,3], z1[2,4])
+u.air <- t(coefs.mnl) %*% mean.air
+exp.air <- exp(u.air)
+
+## Probability of train
+p.train.mnl <- exp.train/(exp.train + exp.car + exp.air)
+
+
+## Beta k's
+beta.freq <- coefficients(Table5.MNL)[3]
+beta.cost <- coefficients(Table5.MNL)[4]
+beta.ivt <- coefficients(Table5.MNL)[5]
+beta.ovt <- coefficients(Table5.MNL)[6]
+
+## Direct elasticities
+MNL.freq.direct <- (1-p.train.mnl)*beta.freq*z1[1,1]
+MNL.cost.direct <- -(1-p.train.mnl)*beta.cost*z1[1,2]
+MNL.ivt.direct <- -(1-p.train.mnl)*beta.ivt*z1[1,3]
+MNL.ovt.direct <- -(1-p.train.mnl)*beta.ovt*z1[1,4]
+
+
+## Nested: with train-car nested
+coefs.nl1 <- coefficients(Table5.NL1)[1:6]
+
+u.train.nl1 <- (t(coefs.nl1) %*% mean.train)/coefficients(Table5.NL1)[7]
+exp.train.nl1 <- exp(u.train.nl1)
+
+u.car.nl1 <- (t(coefs.nl1) %*% mean.car)/coefficients(Table5.NL1)[7]
+exp.car.nl1 <- exp(u.car.nl1)
+
+u.air.nl1 <- (t(coefs.nl1) %*% mean.air)/coefficients(Table5.NL1)[8]
+exp.air.nl1 <- exp(u.air.nl1)
+
+## Probability of train
+p.train.nl1 <- exp.train.nl1/((exp.train.nl1 + exp.car.nl1)^(coefficients(Table5.NL1)[7]) + exp.air.nl1^(coefficients(Table5.NL1)[8]))
+
+## Beta k's for NL1
+beta.freq.nl1 <- coefficients(Table5.NL1)[3]
+beta.cost.nl1 <- coefficients(Table5.NL1)[4]
+beta.ivt.nl1 <- coefficients(Table5.NL1)[5]
+beta.ovt.nl1 <- coefficients(Table5.NL1)[6]
+
+## Direct elasticities for NL1
+NL1.freq.direct <- (1-p.train.nl1)*beta.freq.nl1*z1[1,1]
+NL1.cost.direct <- -(1-p.train.nl1)*beta.cost.nl1*z1[1,2]
+NL1.ivt.direct <- -(1-p.train.nl1)*beta.ivt.nl1*z1[1,3]
+NL1.ovt.direct <- -(1-p.train.nl1)*beta.ovt.nl1*z1[1,4]
+
+
+
+## Nested: with air-car nested
+## n not in nest m of i: (1 - Pn)Beta_k*x_nk
+## Equation 15.6 in lecture notes
+## lambda_c becomes 1
+
+coefs.nl2 <- coefficients(Table5.NL2)[1:6]
+
+u.train.nl2 <- (t(coefs.nl2) %*% mean.train)/coefficients(Table5.NL2)[8]
+exp.train.nl2 <- exp(u.train.nl2)
+
+u.car.nl2 <- (t(coefs.nl2) %*% mean.car)/coefficients(Table5.NL2)[7]
+exp.car.nl2 <- exp(u.car.nl2)
+
+u.air.nl2 <- (t(coefs.nl2) %*% mean.air)/coefficients(Table5.NL2)[7]
+exp.air.nl2 <- exp(u.air.nl2)
+
+## Probability of train
+p.train.nl2 <- exp.train.nl2/((exp.train.nl2)^(coefficients(Table5.NL2)[8]) + (exp.air.nl2 + exp.car.nl2)^(coefficients(Table5.NL1)[7]))
+
+## Beta k's for nl2
+beta.freq.nl2 <- coefficients(Table5.NL2)[3]
+beta.cost.nl2 <- coefficients(Table5.NL2)[4]
+beta.ivt.nl2 <- coefficients(Table5.NL2)[5]
+beta.ovt.nl2 <- coefficients(Table5.NL2)[6]
+
+## Direct elasticities for nl2
+NL2.freq.direct <- 1-p.train.nl2*beta.freq.nl2*z1[1,1]
+NL2.cost.direct <- 1-p.train.nl2*beta.cost.nl2*z1[1,2]
+NL2.ivt.direct <- 1-p.train.nl2*beta.ivt.nl2*z1[1,3]
+NL2.ovt.direct <- 1-p.train.nl2*beta.ovt.nl2*z1[1,4]
+
+####################################################
+## Skip PCL direct elasticities - ran out of time ##
+####################################################
+
+################################
+## Part B - elasticity ratios ##
+################################
+
+MNL.Freq.ratio <- MNL.freq.direct/.312
+MNL.Cost.ratio <- MNL.cost.direct/1.473
+MNL.IVT.ratio <- MNL.ivt.direct/1.862
+MNL.OVT.ratio <- MNL.ovt.direct/2.993
+
+NL1.Freq.ratio <- NL1.freq.direct/.312
+NL1.Cost.ratio <- NL1.cost.direct/1.473
+NL1.IVT.ratio <- NL1.ivt.direct/1.862
+NL1.OVT.ratio <- NL1.ovt.direct/2.993
+
+NL2.Freq.ratio <- NL2.freq.direct/.312
+NL2.Cost.ratio <- NL2.cost.direct/1.473
+NL2.IVT.ratio <- NL2.ivt.direct/1.862
+NL2.OVT.ratio <- NL2.ovt.direct/2.993
+
+
+```
+
+I was unable to replicate the results for the second nested logit (air-car) or even begin to replicate the results for the PCL. Here are the direct elasticities and ratios that I calculated for the MNL:
+
+Direct elasticities:
+
+1. Frequency: `r round(MNL.freq.direct, digits = 3)`
+
+2. Cost: `r round(MNL.cost.direct, digits = 3)`
+
+3. IVT: `r round(MNL.ivt.direct, digits = 3)`
+
+4. OVT: `r round(MNL.ovt.direct, digits = 3)`
+
+
+Ratios:
+
+1. Frequency: `r round(MNL.Freq.ratio, digits = 3)`
+
+2. Cost: `r round(MNL.Cost.ratio, digits = 3)`
+
+3. IVT: `r round(MNL.IVT.ratio, digits = 3)`
+
+4. OVT: `r round(MNL.OVT.ratio, digits = 3)`
+
+Here are the direct elasticities and ratios that I calculated for the first nested logit:
+
+Direct elasticities:
+
+1. Frequency: `r round(NL1.freq.direct, digits = 3)`
+
+2. Cost: `r round(NL1.cost.direct, digits = 3)`
+
+3. IVT: `r round(NL1.ivt.direct, digits = 3)`
+
+4. OVT: `r round(NL1.ovt.direct, digits = 3)`
+
+
+Ratios:
+
+1. Frequency: `r round(NL1.Freq.ratio, digits = 3)`
+
+2. Cost: `r round(NL1.Cost.ratio, digits = 3)`
+
+3. IVT: `r round(NL1.IVT.ratio, digits = 3)`
+
+4. OVT: `r round(NL1.OVT.ratio, digits = 3)`
+
+Here are the direct elasticities and ratios that I calculated for the second nested logit:
+
+Direct elasticities:
+
+1. Frequency: `r round(NL2.freq.direct, digits = 3)`
+
+2. Cost: `r round(NL2.cost.direct, digits = 3)`
+
+3. IVT: `r round(NL2.ivt.direct, digits = 3)`
+
+4. OVT: `r round(NL2.ovt.direct, digits = 3)`
+
+
+Ratios:
+
+1. Frequency: `r round(NL2.Freq.ratio, digits = 3)`
+
+2. Cost: `r round(NL2.Cost.ratio, digits = 3)`
+
+3. IVT: `r round(NL2.IVT.ratio, digits = 3)`
+
+4. OVT: `r round(NL2.OVT.ratio, digits = 3)`
+
+
+
+
+# Problem 8: 
+## Calculate Table 7. What do you conclude? 
+
+I was unable to attempt this problem.
+
+
+# References
+Davis, A., and De la Maza, C. (2016). 19-786 Stochastic Discrete Chioce Models. Carnegie Mellon Univeristy, Lecture Notes.
+
+
+

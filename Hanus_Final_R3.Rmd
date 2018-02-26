@@ -1,0 +1,679 @@
+---
+title: "19-786 Final Project"
+author: "Nichole Hanus"
+date: "Friday, December 16, 2016"
+output: pdf_document
+---
+
+```{r, include=FALSE, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+## Set the directory
+setwd("C:/Users/hanusnil/Dropbox/S11. 19-786 Stochastic Discrete Choice Models/Final Project")
+
+## GEV, Mixed Logit Models
+install.packages("mlogit", repos = "http://cran.us.r-project.org")
+library("mlogit")
+
+# install.packages("gmnl")
+install.packages("gmnl", repos = "http://cran.us.r-project.org")
+library(gmnl)
+
+# install.packages("MASS")
+install.packages("MASS", repos = "http://cran.us.r-project.org")
+library(MASS)
+
+## for rMultinom
+install.packages("Hmisc", repos = "http://cran.us.r-project.org")
+library(Hmisc)
+
+```
+
+
+
+# Introduction
+
+In 2015, approximately 67% of total electricity generated in the United States came from fossil fuel sources, while less than 1% came from solar photovoltaic (PV) electricity generation. Due to this mostly fossil fuel dependent electricity portfolio, electricity generation accounted for approximately 40% of total U.S. carbon dioxide (CO2) emissions in the same year. Solar PV can significantly reduce emissions of $CO_{2}$ and other harmful pollutants, which have asymmetric negative effects for at-risk populations such as asthmatics, the elderly, and low-income families. Although there is already a significant literature on the diffusion of solar PV throughout the residential sector, very little is known regarding the potential to use solar PV in educational institutions. This sector already plays a key role in a community's education and culture - it could also serve as a leader of sustainability. 
+
+The Department of Energy's Better Buildings Challenge targets commercial buildings, including higher edcuation facilities, in their goal to reduce building energy consumption by 20% compared to a 2010 baseline (DOE, 2016). Currently, higher education facilities are responsible for 7% of the total 4.1 billion square feet of market floorspace reported in the DOE's Better buildings initiatieves (DOE, 2016). This sector faces a multitude of unique challenges to energy efficiency and renewable energy initiatives, which include campus expansion and upgrades to increase visibility; maintaining existing highly-specialized buildings such as laboratires and theaters; and recruiting and retraining highly skilled building engineers. In total, the higher education sector is estimated to have annual energy costs around $7.7 billion, which is roughly half of what they pay each year on operations and maintenance (O&M), or approximately $14 billion a year (DOE, 2016; American School and University, 2009; EIA, 2012; NACUBO). According to the U.S. Department of Education, National Center for Education Statistics (2016), this annual energy and O&M budget of nearly $22 billion is equivalent to approximately 600,000 sudents' tuition. As enrollment rates continue to increase and the higher education facilities sector continues to grow, energy efficiency and renewable energy become exceedingly important considerations for facilities managers at colleges and universities.  
+
+A higher education institution interested in reducing fossil fuel electricity consumption often has four main alternatives available to them: (1) purchase Renewable Energy Certificates (RECs), (2) install on-site electricity generation technologies (e.g. solar PV, low-velocity wind turbines, etc.), (3) install energy efficient equipment (e.g. lighting, chillers, pumps, etc.), and (4) perform retro-commissioning to optimize system performance (AASHE, 2016). Each of these options have associated costs, including but not limited to financial costs, and benefits that reach beyond electricity cost savings. In our study, we hope to observe some of these trade-offs considered by higher education facilities decision-makers when making energy system investments. 
+
+However, facilities managers of higher education buildings aren't only faced with energy system investments. Rather, the funding that facilities managers receive from the facilities departments must also cover facilities operations and maintenance as well as, perhaps, some new construction project (Wright and wilton, 2012). In our study, we focus on four investment options that a facilities manager is likely to face: (1) a facility upgrade; (2) an energy efficiency investment; (3) a renewable energy project - in our case, a photovoltaic (PV) project; and (4) a new university center. Each of these investment options have numerous attributes the facilities manager will likely need to consider. In our study, we focus on (a) project cost and resulting annualized adjustment to the facilities budget, (b) $CO_{2}$ emissions on campus, (c) visibility, and (d) comfort levels of the occupants. We suspect decision-makers will tend to group our specified investment options into two nests: energy investments and construction investments. Therefore, we use a nested logit model to evaluate the conditional probability of support for different attribute combinations and respondents willingness-to-pay (WTP) for changes in specific attributes (McFadden, 1978). We use this model to address the following questions:
+
+1.  How likely are facilities managers in the higher education sector to support energy efficiency or renewable energy projects given changes to visibility and comfort?
+
+2.  How do facilities managers in the higher education sector prioritize emissions reductions, visibility, and comfort levels throughout campus?
+
+3.	How much are facilities managers willing to pay for $CO_{2}$ emissions reductions, visibility, and comfort levels throughout campus?
+
+# Method
+In the following section, we outline the anticipated sample, proposed survey design, and data analysis plan. The sample and data collection section will describe how we propose to obtain our sample. The survey design will include a discussion of the intended survey platform and survey description. The data analysis plan will describe the anticipated exploratory data analysis, model selection method, and a plan for interpretting coefficients. The data analysis section is assumed to be implemented after data collection and all post-processing is complete. 
+
+## Sample Description
+We plan to conduct an internet-based survey between August 2017 and September 2017 with a sample consisting of 100 higher education facilities managers across the United States. The final number of recruited participants will be determined based on a power analysis, keeping in mind the difficulty of targetting facilities managers for a survey. We will develop the original list of survey participants by combining data from a previous study that analyzed energy efficiency opportunities in higher eduation facilities across the U.S. (CMU, 2008) and potentially CoStar, a commercial building database (CoStar, 2016). CoStar will help us close any potential gaps in the original list of education facilities and it will also provide some contact information for these facilities managers. What we cannot find within these two sources, we will find on university websites and through making phone calls. Once we have a list of facilities managers for every higher education building (or campus), we will corroborate that list with the 2016 Sustainable Campus Index published by The Association for the Advancement of Sustainability in Higher Education (AASHE) to determine which campuses are already pursuing sustainability initiatives (AASHE, 2016). Participants will be recruited such that representation is proportional to the state's share of the total U.S. population, with an even balance of schools that are and are not listed in the Sustainable Campus Index. Survey participants will be compensated with a $10 Amazon gift card for their time.
+
+## Survey Design
+We will employ a discrete choice experiment to elicit stated preferences of facilities managers in higher education facilities regarding facilities budgets and various attributes of facilities investments. Our study will complement studies from other researchers applying discrete choice experiments to study preferences in purchasing energy efficiency or renewable energy products (Sergi et al., 2016; Min et al., 2014; Helveston et al., 2015; Bergmann et al., 2016). 
+
+In our study, facility managers from educational institutions across the U.S. will choose between four different typical invesments: (1) a facility upgrade, (2) an energy efficiency project, (3) a PV project, and (4) a new university center. Each investment will be characterized with a combination of four attributes: (a) Cost - change in average annual facilities operation budget, (b) $CO_{2}$ - change in averge annual campus $CO_{2}$ emissions, (c) Visibility - change in average annual number of student applications, and (d) Comfort - change in average annual hot/cold calls to facilities engineers. We will assume the facilities managers operate under a specified budget each year, which includes funding for utilities, capital improvements, and general operations and maintenance. Therefore, we will adjust this budget up and down according to the investments; some investments will incur cost savings on average (e.g. retrocomissioning of a building automation system) and some investments will increase overall operations costs (e.g. new elevators). All investments will come with some capital cost, but we will ultimately characterize these investments as a net increase or decrease to the annual budget. Additionally, we will assume that every investment will either increase the average $CO_{2}$ emissions each year on campus by some percentage of a basline year of 2016. In our survey, visibility will be quantified as the number of applications the university receives. We will assume that an increase in applications represents an increase in campus visibility. Again, this value is reported as a percentage increase or decrease from 2016 levels. Finally, facilities managers and engineers are often trying to reduce the number of "hot/cold calls" received from occupants during operating hours. A "hot/cold call" is essentially any time an occupant complains about comfort. Therefore, we report comfort as a percentage increase or decrease in the number of hot/cold calls from a 2016 baseline. We will manipulate these attributes using the levels depicted in Table 1. The attribute levels currently chosen for this survey are very loosely based off of existing or proposed policy objectives and levels used in similar studies (Sergi et al., 2016). For example, the U.S. DOE has set a goal of achieving 20% energy savings in U.S. buildings compared to a 2010 baseline (DOE, 2016). However, these attribute levels will likely be adjusted after further research regarding typical visibility and comfort goals for this sector. 
+
+Table: Attribute levels.
+
+| Attribute                                                | Levels used in survey |
+| :------------                                            | :----------- | 
+| Investment                                               | Facility Upgrade (baseline)/EE project/PV project/New UC | 
+| Change annual facilities operations budget               | -20\%/-10\%/no change/+10\%/+20\%  |
+| Annual change in $CO_{2}$ emissions                      | -70\%/-30\%/no change/+30\%/+70\% | 
+| Annual change in visibility (i.e. sudent applications)   | -70\%/-30\%/no change/+30\%/+70\% | 
+| Annual change in hot/cold calls                          | -70\%/-30\%/no change/+30\%/+70\%  ||
+
+
+The survey structure will include four main sections. First, participants will be provided a description of the task and the study objectives. After this introduction, they will be asked to sign a consent form. Next, participants will be presented a visual guide and detailed descriptions of the various investment alternatives and attributes measured in the study. Participants will then be presented 10 choice tasks, which involve a side-by-side comparison of two investments with their associated attributes. Finally, participants will be asked to complete a brief set of demographics questions and a couple open-ended follow-up questions regarding their experience. We will use Sawtooth software to implement our internet-based survey. All questions and choice tasks, attribute orders, attribute levels, and attribute combinations will be randomized. A typical choice task is depicted in Figure 1.
+
+
+![survey Example](SurveyExample.jpg)
+_Figure 1: Example of survey question that appears online._
+
+In addition to providing a thorough tutorial of the survey before it begins to ensure that respondents understand the task, we are also interested in checking the consistency of individuals' responses by including attention checks, testing for responses that are consistent with transitive preferences, and checking for linearity in preferences. Attention checks could take the form of comprehension questions after the tutorial and "easy" investment choice tasks throughout the experiment. For instance, a participant could be asked to make a decision between two energy efficiency investments that have all of the same attributes, but vary in changes to the annual budget. The investment that increases the annual budget the most should be selected. Testing for transitive preferences requires that we carefuly design a few investment scenarios with varying adjustments to the annual facilities budget, changes in $CO_{2}$ emissions, changes in campus visibility, and comfort in the buildings. After designing these scenarios and randomly assigning a set number to each respondent we should be able to determine which investment selections would meet transitive preferences. One method for checking for linearity would require that we design two choice tasks that include comparisons between two investments that have varying levels of attributes, but the difference between the levels of attributes are equal between the two tasks. Essentially, the differences in levels from investment A and investment B in chioce task 1 should be the same as the differences in levels from scenario A and scenario B in choice task 2. Therefore, participants with linear preferences would consistently choose either AB or BA across the two scenarios. Finally, it might be worthwhile to check the legitimacy of our model by having participants rate the importance of each of the four attributes on a scale from 1 to 4 to see if those results are consistent with the findings from our model.  
+
+
+## Analytic Strategy
+We will analyze the responses in the discrete choice survey by first using a generalized extreme value (GEV) nested logit model, in which the utility $U$ for an individual $i$ is a function of the attributes in choice $j$ and an unobserved error component $\eta_{ij}$. Nested logit utility functions are often described with the following utility function: 
+
+\begin{align}
+U_{ij} &= \alpha^{T}y_{j} + \beta^{T}x_{ij} + \epsilon_{ij} 
+\end{align}
+
+In our model, the attributes vary across two nests $n$: (1) energy investment and (2) construction investment. Thus, we will have an inclusive value that describes how much the decision-makers distinguish the individual attributes of each alternative within these nests:
+
+\begin{align}
+I_{i} = log(\sum_{m=1}^{J_{i}}e^{\beta^{T}x_{im}}) 
+\end{align}
+
+Ultimately, we assume an additive model that is linear in parameters and has the following basic form without an intercept:
+
+\begin{align}
+U_{ij}(X) &= \beta_{EE} X_{ij}^{EE} + \beta_{PV} X_{ij}^{PV} + \beta_{UC} X_{ij}^{UC} + \beta_{Cost} X_{ij}^{Cost} + \beta_{CO_{2}} X_{ij}^{CO_{2}} + \beta_{Vis} X_{ij}^{Vis} + \beta_{HCcall} X_{ij}^{HCcall} + \epsilon_{ij} 
+\end{align}
+
+These variables $X$ are described in Table 2:
+
+Table: Attribute variables in the nested logit model.
+
+| Variable          | Description |
+| :------------:    | :----------- | 
+| $X_{ij}^{EE}$     | dummy variable for the energy efficiency investment [1=yes, 0=no] (baseline is facility upgrade) | 
+| $X_{ij}^{PV}$     | dummy variable for the PV investment [1=yes, 0=no] (baseline is facility upgrade) |
+| $X_{ij}^{UC}$     | dummy variable for the new university center [1=yes, 0=no] (baseline is facility upgrade)| 
+| $X_{ij}^{Cost}$   | percentage change in annual facilities management budget from 2016 budget | 
+| $X_{ij}^{CO_{2}}$ | percentage change in annual $CO_{2}$ from 2016 emissions levels on campus |
+| $X_{ij}^{Vis}$    | percentage change in student applications from 2016 levels |
+| $X_{ij}^{HCcall}$   | percentage change in hot/cold calls from 2016 levels ||
+
+As previously mentioned, we are most interested in learning about the conditional probabilities of support for different attribute combinations as well as the WTP for these attributes. We derive the probabilities of support from the modeled utility function as follows:
+
+\begin{align}
+Prob = \frac{1}{1+e^{-U(x)}}
+\end{align}
+
+where $U(x)$ is specified in equation (3). Thus, we can calculate the probability that a respondent will favor a specified investment given a specified change in attribute levels compared to a baseline. We can calclate the WTP for a specific attribute by dividing the attribute coefficient by the cost coefficient as follows:
+
+\begin{align}
+WTP^{Attribute} = -\frac{\beta^{Attribute}}{\beta^{Cost}}
+\end{align}
+
+All variables are in terms of percent changes (e.g. percent change of annual facilities budget and percent change to student applications). Therefore, our WTP value describes what participants are willing to lose in their annual operating budget in order to increase specific attributes in their investment. For instance, a WTP of 10% for visibility suggests that a facilities manager is willing to spend 10% of their annual facilities operation budget to increase the number of student applications by 1% for the next year compared to 2016.
+
+We are also interested in testing if facilities managers follow an elimination by aspects (EBA) model for decision-making regarding facilities investments (Tversky, 1972). A nested logit model allows for decision makers to partition alternatives into one or more "nests" that exhibit similar attribute levels. For instance, we suspect a decision-maker might consider facilities upgrades and a new university center to be similar since they both likely exhibit similar capital costs of construction, might improve visibility for the university, improve occupant comfort, and likely increase overall campus $CO_{2}$ emissions. Conversely, energy efficiency and PV projects tend to have similar project economics, may not directly improve campus visibility, might not change occupant comfort, and should decrease overall campus $CO_{2}$ emissions. Therefore, our nested logit model should capture these similarities. However, an EBA model will also allow for a sequential decision-making process. Perhaps a decision-maker is primarily interested in improving campus visibility and will, thus, eliminate energy efficiency projects that are not salient to prospective students. An error-components model that estimates a nested logit with an inclusive value coefficient of zero may be one way to capture EBA decision-making. Therefore, we will compare our GEV nested logit model with an error-components model that approximates a nested logit. 
+
+# Anticipated Results and Discussion
+
+The following few pages includes the fake data generation process. This code was adapted from Davis and De le Maza (2016).
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+####################################
+########## GENERATE DATA ###########
+####################################
+# Pg. 326 - 330 in Davis and De la Maza (2016)
+####################################
+# 4 attributes: Cost, Co2, Visibility, and Comfort
+# Generate coefficients
+beta1 <- -1   # Cost: % change in annual facilities operation budget 
+beta2 <- 2    # CO2: % change in CO2 emissions on campus
+beta3 <- 4    # Visibility: % change in number of student applications
+beta4 <- 3    # Hot/cold call: % change in number of hot/cold calls
+alpha <- 1.5
+####################################
+# Survey 100 subjects with 10 choice sets
+n  <- 100   # Subjects
+cs <- 10    # Choice sets
+N  <- n*cs
+####################################
+# 4 alternatives: Facility Upgrade, EE, PV, and New UC
+# Generate bottom-level regressors
+
+# Cost options: -20%, -10%, 0%, +10%, +20%
+cost.op <- c(-.2, -.1, 0, .1, .2)
+# CO2 options: -70%, -30%, 0%, +30%, +70%
+co2.op <- c(-.7, -.3, 0, .3, .7)
+# Visibility options: -70%, -30%, 0%, +30%, +70%
+vi.op <- c(-.7, -.3, 0, .3, .7)
+# Comfort options: -70%, -30%, 0%, +30%, +70%
+comf.op <- c(-.7, -.3, 0, .3, .7)
+
+x1a <- sample(cost.op, N, replace = TRUE) # Facility Upgrade
+x1b <- sample(cost.op, N, replace = TRUE) # EE
+x1c <- sample(cost.op, N, replace = TRUE) # PV
+x1d <- sample(cost.op, N, replace = TRUE) # New UC
+
+x2a <- sample(co2.op, N, replace = TRUE)
+x2b <- sample(co2.op, N, replace = TRUE)
+x2c <- sample(co2.op, N, replace = TRUE)
+x2d <- sample(co2.op, N, replace = TRUE) 
+
+x3a <- sample(vi.op, N, replace = TRUE)
+x3b <- sample(vi.op, N, replace = TRUE)
+x3c <- sample(vi.op, N, replace = TRUE)
+x3d <- sample(vi.op, N, replace = TRUE)
+
+x4a <- sample(comf.op, N, replace = TRUE) 
+x4b <- sample(comf.op, N, replace = TRUE) 
+x4c <- sample(comf.op, N, replace = TRUE) 
+x4d <- sample(comf.op, N, replace = TRUE) 
+####################################
+# Generate top-level regressors
+w.n1 <- rnorm(N, 0, 1)
+w.n2 <- rnorm(N, 0, 1)
+####################################
+# Generate inclusive value coefficient
+# Alex suggests the EBA model has inclusive values near 0
+# Essentially, individual characteristics of the alternatives
+# are ignored and their aggregate characteristics 
+# are all that matters
+lambda1 <- .025  # Inclusive coef. for EE and PV investments
+lambda2 <- .05   # Inclusive coef. for Facility Upgrade and New UC
+####################################
+# Calculate lower utilities
+low.a <- (beta1*x1a + beta2*x2a + beta3*x3a + beta4*x4a)/lambda2 # facility upgrade
+low.b <- (beta1*x1b + beta2*x2b + beta3*x3b + beta4*x4b)/lambda1 # EE
+low.c <- (beta1*x1c + beta2*x2c + beta3*x3c + beta4*x4c)/lambda1 # PV
+low.d <- (beta1*x1d + beta2*x2d + beta3*x3d + beta4*x4d)/lambda2 # new UC
+####################################
+# Calculate inclusive value
+IN1 <- log(exp(low.b) + exp(low.c))
+IN2 <- log(exp(low.a) + exp(low.d))
+####################################
+# Calculate lower probabilities (conditional choice probs)
+plow.a <- exp(low.a)/exp(IN2)
+plow.b <- exp(low.b)/exp(IN1)
+plow.c <- exp(low.c)/exp(IN1)
+plow.d <- exp(low.d)/exp(IN2)
+####################################
+# Calculate upper utilities
+up.n1 <- alpha*w.n1 + lambda1*IN1
+up.n2 <- alpha*w.n2 + lambda2*IN2
+####################################
+# Calculate upper probabilities
+p.n1 <- exp(up.n1)/(exp(up.n1) + exp(up.n2))
+p.n2 <- exp(up.n2)/(exp(up.n1) + exp(up.n2))
+####################################
+# Calculate choice probabilities
+p1 <- plow.a*p.n2 # facility upgrade
+p2 <- plow.b*p.n1 # EE
+p3 <- plow.c*p.n1 # PV
+p4 <- plow.d*p.n2 # New UC
+p <- cbind(p1, p2, p3, p4)
+####################################
+# Generate Choices
+y.choice <- rMultinom(p, 1)
+y1 <- ifelse(y.choice == "p1", 1, 0)
+y2 <- ifelse(y.choice == "p2", 1, 0)
+y3 <- ifelse(y.choice == "p3", 1, 0)
+y4 <- ifelse(y.choice == "p4", 1, 0)
+y_matrix <- cbind(y1, y2, y3, y4)
+####################################
+
+```
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+##########################################################
+########## CONVERT DATA TO MLOGIT FORM ###################
+##########################################################
+# Stack the data
+x1.stack <- c(x1a, x1b, x1c, x1d)
+x2.stack <- c(x2a, x2b, x2c, x2d)
+x3.stack <- c(x3a, x3b, x3c, x3d)
+x4.stack <- c(x4a, x4b, x4c, x4d)
+w.stack <- c(w.n1, w.n1, w.n2, w.n2)
+y.stack <- c(y1, y2, y3, y4)
+alt <- c(rep("A", length(y1)), rep("B", length(y2)), 
+         rep("C", length(y3)), rep("D", length(y4)))
+ch.id <- c(rep(1:length(y1), 4))
+id <- c(rep(1:n, 4*cs))
+data1 <- data.frame("id" = id,
+                    "x1" = x1.stack,
+                    "x2" = x2.stack,
+                    "x3" = x3.stack,
+                    "x4" = x4.stack,
+                    "w" = w.stack,
+                    "choice" = y.stack,
+                    "alt" = factor(alt),
+                    "chid" = ch.id)
+# Convert to mlogit data
+data.mlogit <- mlogit.data(data1,
+                           id.var = "id",
+                           choice = "choice",
+                           shape = "long",
+                           alt.var = "alt",
+                           chid.var = "chid")
+# Create alternative-specific constants by hand
+data.mlogit$EE <- as.numeric(data.mlogit$alt == "B")
+data.mlogit$PV <- as.numeric(data.mlogit$alt == "C")
+data.mlogit$UC <- as.numeric(data.mlogit$alt == "D")
+# Rename x1 = Cost, x2 = CO2, x3 = Visibility, x4 = Comfort
+names(data.mlogit)[names(data.mlogit) == "x1"] <- "Cost"
+names(data.mlogit)[names(data.mlogit) == "x2"] <- "CO2"
+names(data.mlogit)[names(data.mlogit) == "x3"] <- "Visibility"
+names(data.mlogit)[names(data.mlogit) == "x4"] <- "HCcall"
+
+```
+
+\break
+
+### GEV Model vs. Error- Components Model Summaries
+
+We are interested in comparing the GEV nested logit model to an error-components model that approximates a EBA decision-making by allowing correlation among alternatives, which are modeled as random parameters. Next, we will construct each of the models and compare their output summaries.
+
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+################################
+### GEV MODEL - NESTED LOGIT ###
+################################
+nl <- mlogit(choice ~ Cost + CO2 + Visibility + HCcall + EE + PV + UC|0,
+              data = data.mlogit,
+              nests = list(nest1 = c("A", "B"),
+                           nest2 = c("C", "D")),
+              unscaled = FALSE)
+summary(nl)
+
+```
+
+\break
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE,  fig.align='center'}
+
+#####################################
+### GMNL MODEL - Error Components ###
+#####################################
+nmixl <- gmnl(choice ~ Cost + CO2 + Visibility + HCcall + EE + PV + UC|0,
+              data = data.mlogit,
+              model = 'mixl',
+              R = 1000,
+              haltons = NA,
+              panel = TRUE,
+              correlation = TRUE,
+              ranp = c(EE = "n", PV = "n", UC = "n"))
+summary(nmixl)
+
+```
+
+
+Overall, we are interested in comparing the coefficient estimates between the two models and the grouping characteristics that we can observe with the models. Before comparing coefficients, we would want to first make sure that the error-components model (gmnl) successfully converged - as it did in our simulated example. For the attributes (cost, $CO_{2}$, visibility, and comfort) we can see that the models estimate the coefficients in the same direction. Furthermore, these attribute coefficients have the same order between both models suggesting that the decisions are relatively sensitive to the attributes in similar ways between the mdoels. Additionally, we want to note how the coefficients for the alternatives compare between the two models. Again, they appear to the be the same sign, magnitude, and order. We should also compare the inclusive value coefficients (iv.nest1 and iv.nest2) with the variance-covariance and correlation matrices of the random effects (alternatives) in the error-components model. First, we look at the variance-covariance matrix of the random effects. 
+
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+cov.gmnl(nmixl)
+
+```
+
+From the variance-covariance matrix, we could determine how the random parameters would vary together and which paramaters account for the majority of the heterogeneity in the model. For instance, although this is fake data, we would say that the energy efficiency (EE) investment captures most of the heterogeneity among our decision-makers. Furthermore, there wouldn't appear to be much heterogeneity regarding new UC investment preferences and decision-making (i.e. there isn't much disagreement about the preferences for UC investments). We would also note that as EE variance increases, PV and UC variance increases. Next, we consider the correlation matrix to see if results allign with the inclusive value coefficients estimated in the nested logit model.
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+cor.gmnl(nmixl)
+
+```
+
+From the correlation matrix, we could determine which coefficients are strongly correlated with each other. In the case of our fake data, it seems that all coefficients are highly correlated. I would have expected the EE and PV to be highly correlated, but both to be less correlated with the UC investment. Perhaps I made a mistake generating my data. When analyzing real data, we would want to see if the coefficients with high correlation were in the same nests in the GEV nested logit.
+
+## Estimated Utility Functions
+Given the summary outputs for the GEV nested logit and the error-components model approximation of the nested logit, we estimate the following utility functions:
+
+\begin{align}
+GEV NL: U &= -1.67Cost + 2.82CO_{2} + 5.34Visibility + 4.09HCcall - 0.02EE - 0.04PV + 0.13UC \nonumber \\
+iv.energy &= 1.67 \nonumber \\
+iv.construction &= 1.63 \nonumber
+\end{align}
+\begin{align}
+NMIXL: U &= -1.4Cost + 2.08CO_{2} + 3.95Visibility + 2.98HCcall - 0.05EE - 0.04PV + 0.10UC \nonumber
+\end{align}
+
+As previously mentioned, we would want to compare the utility functions developed from each of these models to identify differences in direction, order, and magnitude of the coefficients for the attributes and the alternatives. From our fake data models, we found that both models estimate a negative coefficient for the cost, which would be exepected from the real data. It seems that after taking into consideration cost, $CO_{2}$ emissions, visibility and comfort, respondents prioritize the alternatives in the following ascending order in GEV nested logit: $PV < EE < Facility Upgrade < UC$. For the error-components model, we see the following ascending order: $EE < PV < Facility Upgrade < UC$. The inclusive values would tell us if there is a general correlation between certain alternatives, which should appear in the correlation matrix of the random parameters in the error-components model. I tried specifying a value close to zero in the generated data, so it seems as if something may have went wrong.
+
+## Estimated Probabilities of Selection
+To compare the estimated probabilites for selecting investments with various attribute combinations for each model, we must first select attribute combinations that are interesting. Returning to the idea that decision-makers might be making decisions based on an elimination-by-aspects model, we might be interested in considering probabilities of selecting investments that maximize each of the four attributes considered in this study. For example, what is the probability of selecting an investment that reduces the facilities operation costs by 20%? What is the probability of selecting an investment that reduces campus $CO_{2}$ emissions by 70%? Therefore, we could estimate the probabilities of selecting the following attribute combinations for the investments:
+
+1. Investment increases annual facilities budget by 20% (i.e. investment is ultimately cost-saving over its lifetime), all other attributes at baseline (i.e. no change).
+
+2. Investment decreases campus-wide $CO_{2}$ emissions by 20% from 2016 levels.
+
+3. Investment increases student application rates by 70% from 2016 levels (e.g. visibility increases).
+
+4. Investment decreases campus-wide hot/cold calls by 70% from 2016 levels (e.g. increases comfort).
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE,  fig.align='center'}
+
+# First, consider the probabilities from the GEV nested logit
+# Coefficients from the GEV nested logit
+coefs.nl <- coef(nl)
+
+# Probability of selecting an investment that
+# increases the annual facilities budget by 20%
+budgetincrease <- c(.2, 0, 0, 0, 0, 0, 0, 0, 0)
+u.budgetincrease <- t(coefs.nl) %*% budgetincrease
+exp.budgetincrease <- exp(-u.budgetincrease)
+p.budgetincrease   <- 1/(1+exp.budgetincrease)
+
+# Probability of selecting an investment that
+# decreases the annual campus CO2 emissions by 20%
+emissionsreduce     <- c(0, -.7, 0, 0, 0, 0, 0, 0, 0)
+u.emissionsreduce <- t(coefs.nl) %*% emissionsreduce
+exp.emissionsreduce <- exp(-u.emissionsreduce)
+p.emissionsreduce   <- 1/(1+exp.emissionsreduce)
+
+# Probability of selecting an investment that
+# increases the annual applications by 70%
+visibilityincrease  <- c(0, 0, .7, 0, 0, 0, 0, 0, 0)
+u.visibilityincrease <- t(coefs.nl) %*% visibilityincrease
+exp.visibilityincrease <- exp(-u.visibilityincrease)
+p.visibilityincrease   <- 1/(1+exp.visibilityincrease)
+
+# Probability of selecting an investment that
+# decreases the annual hot/cold calls by 70%
+HCcalldecrease     <- c(0, 0, 0, -.7, 0, 0, 0, 0, 0)
+u.HCcalldecrease  <- t(coefs.nl) %*% HCcalldecrease 
+exp.HCcalldecrease  <- exp(-u.HCcalldecrease)
+p.HCcalldecrease    <- 1/(1+exp.HCcalldecrease)
+
+# Find confidence intervals for the probabilities
+# Use the variance-covariance matrix and the MASS package
+vcov.nl <- vcov(nl)
+mean.vec.nl <- coef(nl)
+sim.nl <- mvrnorm(10000, mean.vec.nl, vcov.nl)
+
+# Calculate the simulated utility 
+# from the previous investments
+sim.budgetincrease.nl       <- sim.nl %*% budgetincrease
+sim.emissionsreduce.nl      <- sim.nl %*% emissionsreduce
+sim.visibilityincrease.nl   <- sim.nl %*% visibilityincrease
+sim.HCcalldecrease.nl      <- sim.nl %*% HCcalldecrease
+
+# Exponentiate
+exp.budgetincrease.nl       <- exp(sim.budgetincrease.nl)
+exp.emissionsreduce.nl      <- exp(sim.emissionsreduce.nl)
+exp.visibilityincrease.nl   <- exp(sim.visibilityincrease.nl)
+exp.HCcalldecrease.nl      <- exp(sim.HCcalldecrease.nl)
+
+# Now we have the probabilities
+p.budgetincrease.nl       <- exp.budgetincrease.nl/(1+exp.budgetincrease.nl)
+p.emissionsreduce.nl      <- exp.emissionsreduce.nl/(1+exp.emissionsreduce.nl)
+p.visibilityincrease.nl   <- exp.visibilityincrease.nl/(1+exp.visibilityincrease.nl)
+p.HCcalldecrease.nl      <- exp.HCcalldecrease.nl /(1+exp.HCcalldecrease.nl)
+
+# Find the lower and upper bounds of the condfidence intervals
+# by taking the 2.5th and 97.5th quantiles of the simulated probs
+p.budgetincrease.nl.low <- quantile(p.budgetincrease.nl, 0.025)
+p.budgetincrease.nl.up  <- quantile(p.budgetincrease.nl, 0.975)
+p.emissionsreduce.nl.low  <- quantile(p.emissionsreduce.nl, 0.025)
+p.emissionsreduce.nl.up   <- quantile(p.emissionsreduce.nl, 0.975)
+p.visibilityincrease.nl.low <- quantile(p.visibilityincrease.nl, 0.025)
+p.visibilityincrease.nl.up  <- quantile(p.visibilityincrease.nl, 0.975)
+p.HCcalldecrease.nl.low  <- quantile(p.HCcalldecrease.nl, 0.025)
+p.HCcalldecrease.nl.up   <- quantile(p.HCcalldecrease.nl, 0.975)
+
+# Second, consider the probabilities from the error components nested logit
+# Coefficients from the nmixl
+coefs.nmixl <- coef(nmixl)
+
+# Probability of selecting an investment that
+# increases the annual facilities budget by 20%
+budgetincrease.nmixl <- c(.2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+u.budgetincrease.nmixl <- t(coefs.nmixl) %*% budgetincrease.nmixl
+exp.budgetincrease.nmixl <- exp(-u.budgetincrease.nmixl)
+p.budgetincrease.nmixl   <- 1/(1+exp.budgetincrease.nmixl)
+
+# Probability of selecting an investment that
+# decreases the annual campus CO2 emissions by 20%
+emissionsreduce.nmixl     <- c(0, -.7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+u.emissionsreduce.nmixl <- t(coefs.nmixl) %*% emissionsreduce.nmixl
+exp.emissionsreduce.nmixl <- exp(-u.emissionsreduce.nmixl)
+p.emissionsreduce.nmixl   <- 1/(1+exp.emissionsreduce.nmixl)
+
+# Probability of selecting an investment that
+# increases the annual applications by 70%
+visibilityincrease.nmixl  <- c(0, 0, .7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+u.visibilityincrease.nmixl <- t(coefs.nmixl) %*% visibilityincrease.nmixl
+exp.visibilityincrease.nmixl <- exp(-u.visibilityincrease.nmixl)
+p.visibilityincrease.nmixl   <- 1/(1+exp.visibilityincrease.nmixl)
+
+# Probability of selecting an investment that
+# decreases the annual hot/cold calls by 70%
+HCcalldecrease.nmixl     <- c(0, 0, 0, -.7, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+u.HCcalldecrease.nmixl  <- t(coefs.nmixl) %*% HCcalldecrease.nmixl 
+exp.HCcalldecrease.nmixl  <- exp(-u.HCcalldecrease.nmixl)
+p.HCcalldecrease.nmixl    <- 1/(1+exp.HCcalldecrease.nmixl)
+
+# Find confidence intervals for the probabilities
+# Use the variance-covariance matrix and the MASS package
+vcov.nmixl <- vcov(nmixl)
+mean.vec.nmixl <- coef(nmixl)
+sim.nmixl <- mvrnorm(10000, mean.vec.nmixl, vcov.nmixl)
+
+# Calculate the simulated utility 
+# from the previous investments
+sim.budgetincrease.nmixl       <- sim.nmixl %*% budgetincrease.nmixl
+sim.emissionsreduce.nmixl      <- sim.nmixl %*% emissionsreduce.nmixl
+sim.visibilityincrease.nmixl   <- sim.nmixl %*% visibilityincrease.nmixl 
+sim.HCcalldecrease.nmixl      <- sim.nmixl %*% HCcalldecrease.nmixl
+
+# Exponentiate
+exp.budgetincrease.nmixl.sim       <- exp(sim.budgetincrease.nmixl)
+exp.emissionsreduce.nmixl.sim     <- exp(sim.emissionsreduce.nmixl)
+exp.visibilityincrease.nmixl.sim   <- exp(sim.visibilityincrease.nmixl)
+exp.HCcalldecrease.nmixl.sim      <- exp(sim.HCcalldecrease.nmixl)
+
+# Now we have the probabilities
+p.budgetincrease.nmixl.sim       <- exp.budgetincrease.nmixl.sim/(1+exp.budgetincrease.nmixl.sim)
+p.emissionsreduce.nmixl.sim      <- exp.emissionsreduce.nmixl.sim/(1+exp.emissionsreduce.nmixl.sim)
+p.visibilityincrease.nmixl.sim    <- exp.visibilityincrease.nmixl.sim/(1+exp.visibilityincrease.nmixl.sim)
+p.HCcalldecrease.nmixl.sim       <- exp.HCcalldecrease.nmixl.sim /(1+exp.HCcalldecrease.nmixl.sim)
+
+# Find the lower and upper bounds of the condfidence intervals
+# by taking the 2.5th and 97.5th quantiles of the simulated probs
+p.budgetincrease.nmixl.low <- quantile(p.budgetincrease.nmixl.sim, 0.025)
+p.budgetincrease.nmixl.up  <- quantile(p.budgetincrease.nmixl.sim, 0.975)
+p.emissionsreduce.nmixl.low  <- quantile(p.emissionsreduce.nmixl.sim, 0.025)
+p.emissionsreduce.nmixl.up   <- quantile(p.emissionsreduce.nmixl.sim, 0.975)
+p.visibilityincrease.nmixl.low <- quantile(p.visibilityincrease.nmixl.sim, 0.025)
+p.visibilityincrease.nmixl.up  <- quantile(p.visibilityincrease.nmixl.sim, 0.975)
+p.HCcalldecrease.nmixl.low  <- quantile(p.HCcalldecrease.nmixl.sim, 0.025)
+p.HCcalldecrease.nmixl.up   <- quantile(p.HCcalldecrease.nmixl.sim, 0.975)
+
+```
+
+Table: Probabilities of selecting investments that maximize attributes.
+
+| Attribute                 | GEV Nested Logit (95% CI) | Errors-Component Nested Logit (95% CI) |
+| :------------:            | :-----------: | :-----------: |
+| Increase facilities budget by 20%                  | `r round(p.budgetincrease*100, digits = 0)`\% (`r round(p.budgetincrease.nl.low*100, digits = 0)`\% - `r round(p.budgetincrease.nl.up*100, digits = 0)`\%)    | `r round(p.budgetincrease.nmixl*100, digits = 0)`\% (`r round(p.budgetincrease.nmixl.low*100, digits = 0)`\% - `r round(p.budgetincrease.nmixl.up*100, digits = 0)`\%) |
+| Reduce annual $CO_{2}$ emissions by 70%            | `r round(p.emissionsreduce*100, digits = 0)`\% (`r round(p.emissionsreduce.nl.low*100, digits = 0)`\% - `r round(p.emissionsreduce.nl.up*100, digits = 0)`\%)   | `r round(p.emissionsreduce.nmixl*100, digits = 0)`\% (`r round(p.emissionsreduce.nmixl.low*100, digits = 0)`\% - `r round(p.emissionsreduce.nmixl.up*100, digits = 0)`\%)|
+| Increase applications by 70% (visibility)          | `r round(p.visibilityincrease*100, digits = 0)`\% (`r round(p.visibilityincrease.nl.low*100, digits = 0)`\% - `r round(p.visibilityincrease.nl.up*100, digits = 0)`\%) | `r round(p.visibilityincrease.nmixl*100, digits = 0)`\% (`r round(p.visibilityincrease.nmixl.low*100, digits = 0)`\% - `r round(p.visibilityincrease.nmixl.up*100, digits = 0)`\%)|
+| Decrease hot/cold calls by 70% (comfort)           | `r round(p.HCcalldecrease*100, digits = 0)`\% (`r round(p.HCcalldecrease.nl.low*100, digits = 0)`\% - `r round(p.HCcalldecrease.nl.up*100, digits = 0)`\%)   | `r round(p.HCcalldecrease.nmixl*100, digits = 0)`\% (`r round(p.HCcalldecrease.nmixl.low*100, digits = 0)`\% - `r round(p.HCcalldecrease.nmixl.up*100, digits = 0)`\%)||
+
+When comparing the performance of these two models, we would want to see if the order and magnitude of probability of selections change drastically. Here, we see that the estimates are rather similar. We might also want to consider the size of the 95% confidence intervals estimated by each model to see if one can more accurately estimate these probabilities. From our fake data set, we would conclude that participants prioritize attributes of their investments in the following ascending order: decreasing hot/cold calls, reducing $CO_{2}$ emissions, increasing the budget, and visibility.
+
+## Implied WTPs 
+
+Next, we are interested in seeing how much facilities managers are willing to reduce their annual facilities budget to reduce $CO_{2}$ emissions, increase visibility, and increase comfort. We estimate WTP by dividing each attribute coefficient by the cost coefficient.
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE,  fig.align='center'}
+
+# Cost coefficients
+cost.nl    <- coef(nl)["Cost"]
+cost.nmixl <- coef(nmixl)["Cost"]
+
+# CO2 coefficients
+CO2.nl    <- coef(nl)["CO2"]
+CO2.nmixl <- coef(nmixl)["CO2"]
+
+# Visibility coefficients
+Vis.nl    <- coef(nl)["Visibility"]
+Vis.nmixl <- coef(nmixl)["Visibility"]
+
+# HCcalldecrease coefficients
+HCcall.nl    <- coef(nl)["HCcall"]
+HCcall.nmixl <- coef(nmixl)["HCcall"]
+
+# WTPs - nl
+WTP.CO2nl  <- -(CO2.nl/cost.nl) 
+WTP.Visnl  <- -(Vis.nl/cost.nl)
+WTP.HCcallnl <- -(HCcall.nl /cost.nl)
+
+# WTPs - nmixl
+WTP.CO2nmixl  <- -(CO2.nmixl/cost.nmixl) 
+WTP.Visnmixl  <- -(Vis.nmixl/cost.nmixl)
+WTP.HCcallnmixl <- -(HCcall.nmixl /cost.nmixl)
+
+```
+
+
+Table: WTP for measured attributes.
+
+| Attribute                 | GEV Nested Logit | Errors-Component Nested Logit |
+| :------------:            | :-----------: | :-----------: |
+| Annual 1% decrease in $CO_{2}$ emissions | `r round(WTP.CO2nl, digits = 0)` | `r round(WTP.CO2nmixl, digits = 0)` |
+| Annual 1% increase in student applications                | `r round(WTP.Visnl, digits = 0)` | `r round(WTP.Visnmixl, digits = 0)` |
+| Annual 1% decrease in Hot/cold calls                   | `r round(WTP.HCcallnl, digits = 0)` | `r round(WTP.HCcallnmixl, digits = 0)` ||
+
+We would multiple these values by 100 to determine the percent decrease in the annual facilities budget a facilities managers is willing to endure to see an improvement in the other attributes. For instance, our simulated data and GEV nested logit model outputs suggest that a facilities manager is willing to spend an equivalent of 200% of their annual facilities budget to see a 1% decrease in $CO_{2}$ emissions each year on campus. Based on the difficulty in interpretting these WTP values, I think it would be necessary to rethink how the variables are presented and measured in the survey. I think it would also be wise to reduce the margin of change possible for the student applications and hot/cold calls. 
+
+## Individual estimates from the error-components model
+
+In the following sections, we explore the heterogeneity in preferences for the studied alternatives among our sample. The error-components model estimates random effects for the individuals regarding the alternatives. Furthermore, the error-components model that approximates EBA decision-making allows for correlation among the preferences for alternatives.
+
+### Density Plots
+
+First, we consider the density plots for each random effect. As we previously saw in the variance-covariance matrix, preferences for a new UC had the least amount of variance. We also see that these coefficients tend to center around zero, although the EE and PV alternative coefficients are slightly negative. We also find that all of the distributions are slightly bi-modal, which illustrates the implicit EBA or nesting that might be occurring.  
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, cache=TRUE, out.width="0.33\\textwidth"}
+
+# Density plot for each coefficient
+plot(nmixl, par = "EE",
+     effect = "ce", type = "density", col = "grey")
+
+plot(nmixl, par = "PV",
+     effect = "ce", type = "density", col = "grey")
+
+plot(nmixl, par = "UC",
+     effect = "ce", type = "density", col = "grey")
+
+```
+
+_Figure 2: Density plots of individual coefficients for each alternative._
+
+### Point Estimates and Confidence Intervals
+
+Next, we look at the point estimates and confidence intervals for each person. As expected, we see similar variation among all of the alternatives and the coefficient estimates for the UC investment is significantly tighter than the estimates for the PV and EE investments. 
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, cache=TRUE,  out.width="0.33\\textwidth"}
+
+# plot individual coefficients
+plot(nmixl, par = "EE",
+     effect = "ce", ind = TRUE, id = 1:100)
+
+plot(nmixl, par = "PV",
+     effect = "ce", ind = TRUE, id = 1:100)
+
+plot(nmixl, par = "UC",
+     effect = "ce", ind = TRUE, id = 1:100)
+
+```
+
+_Figure 3: Point estimates and confidence intervals for individual coefficients for each alternative._
+
+### Bivariate scatter plots
+
+Finally, we can look at bivariate scatter plots of the individual coefficients and see which coefficients might be tightly correlated. This result is also observed from the correlation matrix, but the scatterplots allow us to identify any outliers or patterns in the spread across the range of estimated EE, PV, and UC coefficients. 
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, cache=TRUE, out.width="0.33\\textwidth"}
+
+EE.ind <- effect.gmnl(nmixl, par = "EE", effect = "ce")$mean
+PV.ind <- effect.gmnl(nmixl, par = "PV", effect = "ce")$mean
+UC.ind <- effect.gmnl(nmixl, par = "UC", effect = "ce")$mean
+
+plot(EE.ind, PV.ind)
+abline(lm(PV.ind ~ EE.ind))
+
+plot(EE.ind, UC.ind)
+abline(lm(UC.ind ~ EE.ind))
+
+plot(PV.ind , UC.ind)
+abline(lm(UC.ind ~ PV.ind ))
+
+```
+
+_Figure 4: Bivariate scatter plots comparing individual coefficients of each of the alternatives._
+
+# Limitations
+
+Our study has a few limitations related to the sample collection, external validity, and coefficient interpretation. Regarding our intended sample, it will be relatively difficult to obtain a large sample of facilities managers of higher education facilities. To begin, this is ultimately limited by the number of universities and colleges across the United States. Furthermore, facilities managers are often quite busy and difficult to reach. We might need to be creative about the survey incentives and the survey implementation. Perhaps there are conferences that we could attend and meet several facilities managers at once. Regardless of our collection method, we would also want to be thoughtful about the differences that might exist between the facilities managers who agree to take the survey and those who don't. Perhaps we could also perform our analyses by breaking the sample into two groups: (1) higher edcuation facilities who are listed in the voluntary AASHE Sustainable Campus Index and (2) those that aren't reported in the index. 
+
+Our second limitation concerns the external validity of our findings. As it is designed, our survey would not provide any additional insight as to how facilities budgets are developed and funded. Our survey only studies the preferences of facilities managers on investments after they have been assigned an annual budget. Furthermore, we aren't considering investment alternatives related to recruiting and retaining highly skilled building engineers. It is also unclear if the number of student applicants is the most salient variable related to visibility for facilities managers. It would be beneficial to learn more about facilities budgeting and management within higher education facilities before fully implementing this survey. Perhaps a few interviews would also provide valuable insight.
+
+Finally, the "budget/cost" coefficient is quite hard to interpret. This coefficient could be broken into major components of an investment, such as capital cost, required debt, annual savings, and annual O&M, but I thought that might be too many attributes to consider in addition to $CO_{2}$ emissions, student applications, and hot/cold calls. Perhaps this variable could at least be split into two components: capital cost and annual net benefits. This variable might also be clarified after a few interviews and a literature review.
+
+# Conclusion
+
+In this paper, we propose a discrete choice experiment to elicit preferences of various energy and/or facility investments that facilities managers of higher education institutions likely experience somewhat regularly. Our study explores trade-offs between four types of investments: (1) facility upgrade, (2) energy efficiency investment, (3) PV project, and (4) new university center. These investments are characterized by four attributes a facilities manager may try to achieve: (a) changes in cost to their annual facilities budget, (b) changes in $CO_{2}$ emissions on campus, (c) changes in campus visibility manifested in the number of student applications, and (d) improvements in occupant comfort manifested by the number of hot/cold calls made in a year. We compare the results of a generalized extreme value nested logit model with an error-components model that approximates elimination-by-aspects decision-making. Once the survey is finalized and data collection ends, we wish to perform this analysis plan to identify which model best predicts decision-making in the higher education sector. Once a model is selected, we plan to evaluate the conditional probability of support for different attribute combinations and respondents' WTP for changes in specific attributes.
+
+
+# References
+
+1. American School and University. (2009). 38th Annual Maintenance & Operations Cost Study for Colleges. http://asumag.com/Maintenance/universitymaintenance-operations-cost-study-200904?page=5
+
+2. Association for the Advancement of Sustainability in Higher Education (2016). Sustainable Campus Index 2016 Top Performers and Highlights. 
+
+3. Bergmann, A., Hanley, N., & Wright, R. (2006). Valuing the attributes of renewable energy investments. Energy policy, 34(9), 1004-1014.
+
+4. Carnegie Mellon Univeristy (2008). It's Not Easy Being Green. Department of Engineering and Public Policy, Deparment of Social and Decision Sciences, H. John Heinz III school of Public Policy and Management. 
+
+5. CoStar. http://www.costar.com/
+
+6. Davis, A., and De la Maza, C. (2016). 19-786 Stochastic Discrete Chioce Models. Carnegie Mellon Univeristy, Lecture Notes.
+
+7. Department of Energy. (2016). Better Buildings Winter 2016 Progress Update. https://betterbuildingssolutioncenter.energy.gov/sites/default/files/attachments/Winter_2016_Progress_Report_0.pdf
+
+8. Helveston JP, et al. (2015) Will subsidies drive electric vehicle adoption? Measuring
+consumer preferences in the U.S. and China. Transp Res Part A Policy Pract 73:96-112.
+
+9. Min J, Azevedo IL, Michalek J, de Bruin WB (2014) Labeling energy cost on light bulbs
+lowers implicit discount rates. Ecol Econ 97:42-50.
+
+10. National Center for Education Statistics. Handout on Fostering Energy Efficiency. http://www.nacubo.org/Documents/BusinessPolicyAreas/
+HandoutonFosteringEnergyEfficiency(0).pdf 
+
+11. Sergi, B., Azevedo, I., & Davis, A. (2016). Understanding public perceptions of energy tradeoffs in climate, health, and consumer costs. Working paper.
+
+12. Tversky, A. (1972). Elimination by aspects: A theory of choice. Psychological review, 79(4), 281.
+
+13. U.S. Department of Education, National Center for Education Statistics. 2015. Digest of Education Statistics, 2013 (NCES 2015-011), Chapter 3.
+https://nces.ed.gov/fastfacts/display.asp?id=76 
+
+14. U.S. Energy Information Administration. (2012). Commercial Buildings Energy Consumption Survey (CBECS). Table B12. Selected principal building
+activity: part 1, floorspace. http://www.eia.gov/consumption/commercial/data/2012/#b12 
+
+15. Wright, T. S., & Wilton, H. (2012). Facilities management directors' conceptualizations of sustainability in higher education. Journal of Cleaner Production, 31, 118-125.

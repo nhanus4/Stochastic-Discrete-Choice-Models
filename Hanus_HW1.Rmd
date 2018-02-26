@@ -1,0 +1,365 @@
+---
+title: "Homework 1"
+author: "Nichole Hanus"
+date: "Monday, September 26, 2016"
+output: pdf_document
+---
+
+```{r, include=FALSE, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+## Set the directory
+setwd("C:/Users/hanusnil/Dropbox/S11. 19-786 Stochastic Discrete Choice Models/Homework 1")
+
+
+## for pretty tables
+install.packages("knitr", repos = "http://cran.us.r-project.org")
+library(knitr) 
+
+
+```
+
+# Problem 1
+
+The linear predictor:
+
+\begin{align}
+\eta &= \bf{X}\beta   \nonumber \\ 
+&= \beta_{0} + \bf{X}\beta_{1} \nonumber 
+\end{align}
+
+And the choice probability is: 
+
+\begin{align}
+P(Y=1|\bf{X}) &= \frac{e^{\eta(\bf{x})}}{1+e^{\eta(\bf{x})}}  \nonumber \\ 
+&= \frac{e^{\bf{X}\beta}}{1+e^{\bf{X}\beta}}  \nonumber
+\end{align}
+
+The linear predictor is a matrix of regressors ($X$) multiplied by coefficients ($\beta$). For a binary (two-parameter) logistic signal detection model, the inverse link function ($g^{-1}$), relates the linear predictor to a conditional probability. 
+
+# Problem 2
+
+The log-likelihood gradient for a logit model:
+
+\begin{align}
+\nabla log(L(\beta|y)) &= \sum_{i=1}^{n} \frac{d\eta(x_{i})}{d\beta}(y_{i}-F_{i})\frac{f_{i}}{F_{i}(1-F_{i})} \nonumber
+\end{align}
+
+Where:
+
+\begin{align}
+\frac{d\eta(x_{i})}{d\beta_{0}} = 1 \nonumber
+\end{align}
+
+And:
+
+\begin{align}
+\frac{d\eta(x_{i})}{d\beta_{1}} = x_{i} \nonumber
+\end{align}
+
+Then:
+
+$$ \nabla log(L(\beta|y)) = \left(\begin{array}
+{c}
+\sum_{i=1}^{n} (y_{i}-F_{i})\frac{f_{i}}{F_{i}(1-F_{i})} \\
+\sum_{i=1}^{n} x_{i}(y_{i}-F_{i})\frac{f_{i}}{F_{i}(1-F_{i})} 
+\end{array}\right)
+$$
+
+
+Where:
+
+\begin{align}
+F_{i} = \frac{e^{\bf{X}\beta}}{1+e^{\bf{X}\beta}} \nonumber
+\end{align}
+
+And:
+
+\begin{align}
+f_{i} = \frac{e^{\bf{X}\beta}}{(1+e^{\bf{X}\beta})^{2}} \nonumber
+\end{align}
+
+Then:
+
+\begin{align}
+\frac{f_{i}}{F_{i}(1-F_{i})} &= \frac {\frac{e^{\bf{X}\beta}}{(1+e^{\bf{X}\beta})^{2}}} {\frac{e^{\bf{X}\beta}}{1+e^{\bf{X}\beta}} (1 - \frac{e^{\bf{X}\beta}}{1+e^{\bf{X}\beta}})} \nonumber \\
+&= \frac {\frac {1}{1+e^{\bf{X}\beta}}} {1- \frac {e^{\bf{X}\beta}}{1+e^{\bf{X}\beta}}}    \nonumber \\
+&= \frac {\frac{1}{1+e^{\bf{X}\beta}}} {\frac {1+e^{\bf{X}\beta}-e^{\bf{X}\beta}}{1+e^{\bf{X}\beta}}} \nonumber \\
+&= 1 \nonumber
+\end{align}
+
+
+Then: 
+
+$$\nabla log(L(\beta|y)) = \left(\begin{array}
+{c}
+\sum_{i=1}^{n} (y_{i}-F_{i}) \\
+\sum_{i=1}^{n} x_{i}(y_{i}-F_{i})
+\end{array}\right)
+$$
+
+
+
+\begin{align}
+= X^{T}r \nonumber
+\end{align}
+
+Where:
+
+\begin{align}
+r = y - F \nonumber
+\end{align}
+
+Then: 
+
+\begin{align}
+\nabla log(L(\beta|y)) = X^{T} \left \{ y-\frac {e^{\bf{X}\beta}}{(1+e^{\bf{X}\beta})} \right \} \nonumber
+\end{align}
+
+The hessian is written as such:
+
+$$ \nabla^{T}r\nabla^{T} = \left(\begin{array}
+{cc}
+-\sum_{i=1}^{n} X_{0i}^{2}f_{i} & -\sum_{i=1}^{n} X_{0i}X_{1i}f_{i}  \\
+-\sum_{i=1}^{n} X_{0i}X_{1i}f_{i} & -\sum_{i=1}^{n} X_{1i}^{2}f_{i} 
+\end{array}\right)
+$$
+
+Where $f_{i} = \frac{e^{X\beta}}{(1+e^{X\beta})^{2}}$
+
+Then:
+
+$$ \nabla^{T}r\nabla^{T} = \left(\begin{array}
+{cc}
+-\sum_{i=1}^{n} X_{0i}^{2}\frac{e^{X\beta}}{(1+e^{X\beta})^{2}} & -\sum_{i=1}^{n} X_{0i}X_{1i}\frac{e^{X\beta}}{(1+e^{X\beta})^{2}} \\
+-\sum_{i=1}^{n} X_{0i}X_{1i}\frac{e^{X\beta}}{(1+e^{X\beta})^{2}} & -\sum_{i=1}^{n} X_{1i}^{2}\frac{e^{X\beta}}{(1+e^{X\beta})^{2}} 
+\end{array}\right)
+$$
+
+And:
+
+$H = -X^{T}WX$
+
+# Problem 3
+
+I would determine if clouds were dangerous by their darkness and how opaque they were as the eye followed them upwards. However, I haven't been able to study clouds much since I lived in the country as a kid and I think this is a skill you gain as you get the opportunity to watch storms rolling in - you can't see this living in the city or in the mountains.
+
+Dewitt et al. (2015) classify the tornado pictures they use in their study based on the description by its source as well as the Neational Weather Service (NWS) criteria defined by the National Oceanic and Atmospheric Association (NOAA). In their experiment, they study the psychological responses of participants to physical stimuli (cloud pictures) via signtal detection theory (SDT) and multidimensional scaling (MDS). From the SDT component of the study, they are trying to determine the participants' sensitivity to signals and the "inertia" participants would overcome to seek shelter if they believed a warning to be a false alarm. Furthermore, the MDS component of the study helps identify the factors that decision-makers use when determining if a cloud looks tornadic. 
+
+I (try) to determine if an email is phishing by the odd phrasing, sketchy email address, and inclusion of links in the body of the email.
+
+Canfield et al. (2016) use SDT to estimate participants' sensitivity and response bias for phishing via a detection task (i.e. perception of email legitimacy) and behavior (e.g. reported handling of phishing emails). Canfield et al. (2016) suggest that attackers, "choose cues designed to evoke heuristic thinking and reduce systematic processing." Such cues include embedded URLs, spelling, and sense of urgency. In this experiment, the researchers do not manipulate email features but do include "naturalistic stimuli" and assess the participants' confience in their discrimination ability and include a measure of dispositional suspiciousness. 
+
+# Problem 4
+
+Dewitt et al. (2015) are concerned about an ordering effect that might occur when participants are first exposed to the MDS task and then exposed to the SDT task. Since the MDS task has participants select which picture seems more tornadic, it gives them an opportunity to study some of the stimuli, which could improve their SDT performance. However, they did not expect the SDT task to effect MDS judgements. Since this ordering effect would only occur with the MDS task before the SDT task, Dewitt et al. (2015) deemed it an assymetrical transfer effect. 
+
+Dewitt et al. (2015) did find an asymmetrical effect. They note in the MDS results section that the results were not significantly different when the participants performed the MDS task first versus the SDT task first. However, when modeling the SDT parameters, they did find that task order had a significant effect on $c$ of 0.12 with a 95% confidence interval of (0.04, 0.20). Effectively, participants increased their criterion for categorizing stimuli as tornadic when they completed the SDT task first.
+
+# Problem 5
+
+The experimental design employed by Dewitt et al. (2015) was a between-subjects design. They recruited 400 participants who each performed three tasks: SDT task, MDS task, and personal information inventory. Each of the participants were randomly assigned to one of four cells in a 2x2 design. The first factor was SDT response range (i.e. half-range or full-range) and the second factor was task order (i.e. SDT or MDS first).
+
+
+Canfield et al. (2015) performed two experiments involving two tasks: detection and behavior. In Experiment 1, they manipulated (a) the order of the tasks and (b) notification of the phishing base rate. This experiment employs a 2x2 between-subjects design, with the factors being task order and base rate notification. In Experiment 2, it seems they manipulated (a) which tasks participants performed as well as (b) notification of the phishing base rate. Again, this experiment employs a 2x2 between-subjects design, with the factors being task type and base rate notification.
+
+# Problem 6
+
+To determine if participants are paying attention to the signal detection task, Dewitt et al. (2015) included three cloud pictures that were exceptionally easy to classify. Two of the pictures were very obviously tornadic and the third picture was a bright blue sky. Each participant saw 50 cloud pictures in the SDT task, so 3 obvious pictures should have been easy to identify in this mix (i.e. participants shouldn't have been too bored or tired to notice).
+
+I think this is a nice approach since the SDT task is done somewhat fast and this wouldn't interrupt the participant's processing. Furthermore, it would allow the participants to use the entire range of their 50-100% confidence selection or 0-100% probability selection, potentially mitigating some of the anchoring that might creep in over the process of classifying 50 pictures. 
+
+
+Canfield et al. (2016) included four attention checks in both experiments.  The first two attention checks occured at the beginning and consisted of two multiple choice questions: (1) "Where does Kelly Harmon work?" and (2) "What is a phishing e-mail?" Next, there were two attention checks embedded in the detection task: (3) "If you are reading this, please answer that this is a phishing e-mail" and (4) "If you are reading this, please answer that this is NOT a phishing e-mail." Apparently, several participants mistook the "legitimate" stimulus check as suspicious and identified the email as "phishing." Therefore, Canfield et al. (2016) decided to construct a binary "attention" variable based on the first three checks (i.e. Attention = 0 if participant fails 1 of 3 valid attention checks). Rather than remove participants who failed the checks, they used the Attention variable in their regression analysis. They also designed three additional attention checks: illogical response (e.g. say phish and say click on link), spending less than 10 seconds on more than one email, and having a d' less than zero.
+
+I think including the statements "If you are reading this..." is too confusing, as they found in their analysis. However, I understand that designing an email that was obviously legitimate or obviously phishing might be difficult. I think the additional checks of d' and spending less than 10 seconds on more than one email are both good ideas. However, I think the illogical response variable might also capture participants who were paying attention, but were confused of the task or the definition of phishing. In my own attention checks, I think I would remove the "If you are reading this..." statements, remove the illogical response measure (or code that as misunderstanding rather than attention), reduce the reading time threshold to 5 seconds, and keep all the other attention check variables. Finally, I think creating a variable to be included in the regression rather than a criterion for throwing out data was also a good idea in this experiment.
+
+
+# Problem 7
+
+I think it was correct to have participants answer these questions at the end of the task. If they were asked before the task, participants might employ the availability heuristic and draw from recent experience or media exposure of tornadic clouds to define the characteristics that were associated with tornadic clouds. This definition may have primed the participants to look for certain cloud characteristics. This priming effect might have been similar to the asymetrical transfer effect that they observed by differing the ordering of the SDT and MDS tasks. I suspect the priming might induce a higher criterion, $c$, for the SDT task. 
+
+Dewitt et al. (2015) ask this question in combination with the SDT and MDS tasks to see if their reported descriptions match the results of the tasks (e.g. are they sensitive to cloud pictures with the characteristics they described and do these dimensions appear in the MDS task?). Furthermore, they perform boths tasks since reported behavior often differs from observed behavior and the MDS task, in particular, helps the researchers identify perceptual processes that individuals may have a hard time articulating or may not even realize. 
+
+
+# Problem 8
+
+Dewitt et al. (2015) estimates $d'$ using two different approaches: (1) using just the choices and (2) using both choices and confidence judgments. In the first approach, $d' = z(H) - z(FA)$ where $z()$ represents the probit transformation of the sample hit rates (H) and false alarm (FA) rates. In the second approach, sensitivity ($d'$) equals the area under the curve (AUC) of the receiver operating characteristic (ROC) curve. They applied a probit function transformation to the ROC curve. Therefore, the sensitivity values calculated using both methods were comparable. In the half-range mode, the responses were used directly. In the full-range mode, 50% was set as the threshold and the absolute deviation from 50% was used as the measure of confidence. Dewitt et al. (2015) use the $d's$ estimated from the AUCs, which allowed them to benefit from the additional information provided by the condifence ratings and the few model assumptions.
+
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+## Read in "SDT-INDIVIDUAL.csv" 
+SDT_Ind <- read.csv("C:/Users/hanusnil/Dropbox/S11. 19-786 Stochastic Discrete Choice Models/Homework 1/SDT-INDIVIDUAL.csv", header=TRUE)
+
+## Write a binary logistic regression algorithm to estimate the logistic 
+## version of d' for the half-range task using "SDT-INDIVIDUAL"
+
+## Code adapted from Davis and De la Maza (2016)
+## MLE Newton-Raphson Logit
+
+logit_hb <- function(X, y){ 
+  b.old <- rep(0, dim(X)[2]) # Initialize parameters to 0 
+  i <- 1 # Set iteration index 
+  while(i <= 100){ 
+    eta <- X %*% b.old # calculate eta 
+    F <- (exp(eta))/(1+exp(eta))  
+    f <- (exp(eta))/(1+exp(eta))^2  
+    f <- as.vector(f)
+    W <- diag(x = f) 
+    score <- t(X) %*% (y - F) 
+    info <- t(X) %*% W %*% X # information matrix
+    inv.info <- chol2inv(chol(info)) 
+    b.new <- b.old + inv.info %*% score # get new beta 
+    # print(b.new) 
+    print(i) 
+    if(abs(b.old[1] - b.new[1]) < .00001) break 
+    b.old <- b.new 
+    i <- i + 1 
+  } 
+  return(list("beta" = b.new, "var" = solve(info))) 
+}
+
+# construct regressor matrix
+n <- length(SDT_Ind$bin)
+x <- SDT_Ind$bin
+X <- cbind(rep(1, n), x)
+
+#logit1 <- logit_hb(X= X, y = SDT_Ind$outcome) 
+#summary(logit1)
+#could not get this to run, even with updated code to reduce RAM usage
+
+## Compare results to the results from using the glm cuntion in R w/ the "logit" link
+
+logit2 <- glm(outcome ~ bin, data = SDT_Ind, family = binomial(link="logit"))
+summary(logit2) #\beta_1 = 1.69
+
+```
+
+I was unable to get my home brew algorithm to perform. I kept running into memory problems and I'm not sure if it's because I wrote the wrong algorithm or if it was my computer. Another student was able to perform the algorithm using a remote server and her coeficients matched those of her GLM. Therefore, I will assume that my coefficients would have matched my GLM (logit2) and will continue the assignment using that model.
+
+From the GLM, I find a $d'$ ($\beta_1$) value of 1.69. This value is slightly higher than the sample mean $d'$ found in Dewitt et al. (2015), which was 1.08, with a 95% confidence interval for themean of (1.04, 1.11). This could be due to the use of the logit model versus the probit model. However, I expected them to be similar, so perhaps I did this wrong...
+
+
+# Problem 9
+
+Dewitt et al. (2015) measures the decision criterion, or decision bias, using the following equation:
+
+\begin{align}
+c = -0.5(z(H)+z(FA)) \nonumber
+\end{align}
+
+Where $z()$ represents the probit transformation of the sample hit rates (H) and false alarm (FA) rates. 
+
+I will try to replicate the bias results ($c$) from Dewitt et al. (2015) using my results from the GLM, since my algorithm didn't work. Recall that $\beta_0 = -.85$ and $\beta_1 = 1.69$:
+
+\begin{align}
+c &= \lambda - \frac{d'}{2} \nonumber \\
+&= -\beta_{0} - \frac{\beta_{1}}{2} \nonumber \\
+&= -(-0.85) - \frac{1.69}{2} \nonumber \\
+&= 0.005 \nonumber
+\end{align}
+
+My bias value of 0.005 is very close to zero, similar to the mean bias of -0.002 with a 95% CI of (-0.06, 0.02) found by Dewitt et al. (2015).
+
+The interpretation of a decision bias of 0 in a tornado experiment context can suggest two things: (a) from a utility interpretation, it could mean that signal and noise are of equal importance to the participant and (b) from a base rate interpretation, it could mean the participant perceives a base rate of 50% in the experiment.
+
+For a decision bias of 1: (a) the utility inrepretation would suggest the participant has less tolerance for FAs relative to misses - the participant is conservative in their tornadic cloud discretion and wants to avoid false alarms; (b) the base rate interpretation would suggest the participant perceives a conservative base rate (i.e. the signal rarely appears).
+
+For a decision bias of -1: (a) the utility interpretation would suggest the participant is lax in their discretion and they have a higher tolerance for FAs relative to misses (i.e. they would prefer to play it safe and call it a tornado) and (b) the base rate intepratation would suggest the participant perceives a lax base rate (i.e. the signal often appears).
+
+I believe the base-rate interpretation is a more convincing intepretation for this measure of bias. I believe the participants were likely performing the tasks as if they were in an experiment setting rather than as if they were looking out the window of their own homes at the ominous clouds. Therefore, I think they cared most about classificatoin accuracy. I agree with Dewitt et al. (2015) that posing the question of "what would you do given the weather scene?" might elicit response biases more related to their payoff matrix. 
+
+
+Canfield et al. (2016) also used the probit transformation to calculate the decision bias ($c$):
+\begin{align}
+c = -0.5(z(H)+z(FA)) \nonumber
+\end{align}
+
+The interpretation of a decision bias in the Canfield et al. (2016) phishing experiment also has two interpretations: (a) a utility interpretation and (b) a base rate interpretation. The base rate interpretation is the same as in the Dewitt et al. (2015) experiment. 
+
+In terms of the utility interpretations, a reponse bias of 0 means the participant perceives equal importance in accurately identifying phishing emails and not flagging benign emails; a response bias of 1 suggests a tendency for participants to avoid flagging emails as phishing, indicating a greater aversion to false alarms than to misses; and a response biase of -1 means participants are willing to flag benign emails and avoid misses, at the risk of increasing false alarms. 
+
+Similar to Dewitt et al. (2015), I think the response bias should be interpretted as a perception of base-rate for the detection task performed in Canfield et al. (2015). However, I think one could use the utility intepretation in behavior performed in Canfield et al. (2015). I think performing a behavior task puts the participant closer to the mindset they might have if they observe the signal in real life. I think the response bias interpretation moves from a strict base rate interpretation to a utility interpretation the more the participant believes the task and payoff matrix to be legitimate. 
+
+# Problem 10
+
+The following table presents the coefficients for each of the individual difference measures in an ordinary least squares model used to predict $d'$ and $c$. Each of the independent variables in these regressions are from individual difference measures and the experimental condition factor variables (e.g. SDT response mode). 
+
+```{r, include=FALSE, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+## Replicate and interpret Table 3 from Dewitt et al. (2015) using OLS and the "SDT-DATA.csv" file
+
+## Read in "SDT-DATA.csv" 
+SDT_Data <- read.csv("C:/Users/hanusnil/Dropbox/S11. 19-786 Stochastic Discrete Choice Models/Homework 1/SDT-DATA.csv", header=TRUE)
+
+
+
+
+```
+
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+## Code adapted from Dewitt et al. (2015) "ERL code.R"
+#### Model d' and c on the individual difference measures and experimental conditions. 
+
+lm.dprime <- lm(adprime ~ order*mode + exp_stand + jd_impacts_stand + 
+  alley.dixie + wx_know_combined_stand + wx_shelter + wx_supplies + 
+  watch_warning + wxsq_score + sns + fail, data = SDT_Data)
+kable(coefficients(summary(lm.dprime)), digits = 3)
+
+lm.c <- lm(c ~ order*mode + exp_stand + jd_impacts_stand + 
+  alley.dixie + wx_know_combined_stand + wx_shelter + wx_supplies + 
+	watch_warning + wxsq_score + sns + fail, data = SDT_Data)
+kable(coefficients(summary(lm.c)), digits = 3)
+
+
+```
+
+As $d'$ represents sensitivity to the signal, we interpret significant positive coefficients as variables that are associated with an increase in sensitivity and significant negative coefficients as variables that are associated with a decrease in sensitivity. From the sensitivity regression model, we find the following individual difference variables to be associated with an increase in sensitivity: participant experience, having a prepared shelter, and higher subjective numeracy scores. However, we found that participants who reported greater impacts from tornados and those who failed the attention checks to have lower sensitivity values. Surprisingly, the following variables were not predictive of sensitivity: living in Dixie Alley, reporting higher meterophily, having supplies ready, knowing that a tornado warning is more serious than a watch, and having higher weather salience. Task order and response mode were not predictive of sensitivity.
+
+
+Since $c$ represents the decision bias, we interpret significant positive coefficients (such as MDS-SDT order) as experimental design characteristics or personal differences that are associated with lower perceptions of the tornadic cloud base rate in the experiment (keeping with the base rate interpretation in this experiment). We interpret significant negative coefficients (such as shelter and weather salience) as experimental design characteristics or personal differences that are associated with higher perceptions of the tornadic cloud base rate. Therefore, the results of the decision bias linear regression suggest that when participants performed the MDS task first, they were significantly more likely to categorize stimuli as tornadic (i.e. they had higher $c$ values; they perceived a higher base rate), which followed the asymmetrical transfer effect predictions made by Dewitt et al. (2015). Results also suggest that higher weather salience scores (WxSQ scores) and having shelter ready reduced the decision bias; participants were more likely to categorize the stimuli as tornadic. None of the other variables predicted decision bias: response mode, reporting more experience, reporting greater impacts, living in Dixie Alley, reporting greater meterophily, having supplies, knowing that a tornado wardning is more serious than a tornado watch, and their score on the subjective numeracy scale.
+
+
+
+# Problem 11
+
+In the first experiment performed by Canfield et al. (2016) participants were randomly assigned into one of two base rate factor groups: (1) participants were notified of base rate prior to task(s) and (2) participants were never notified of the base rate. Canfield et al. (2016) develop multivariate linear regression models for the detection and behavior tasks with increasing amounts of independent variables that described how task manipulations, responses to stimuli, and participant demographics predicted sensitivity $d'$ and response bias $c$. In all 12 of the models, the researchers found that base rate notification did not predict $d'$ or $c$. Canfield et al. (2016) suggest that notification of base rate had no effect because participants who didn't receive notification likely assumed a base rate close to 50%, which was equal to the implemented base rate. Alternatively, they suggest that participants who did receive notification of the base rate were unable (or simply didn't try) to incorporate this knowledge into their responses because they didn't receive feedback.
+
+As previously discussed, a neutral decision criterion (~0) in the experiment described in Dewitt et al. (2015) suggest that participants perceived a 50% base rate. Recall, we use the base rate interpretation for the decision criterion in the tornado experiment since we suggested participants were performing as if they were in an experiment rather than actually responding to similar clouds outside their window. The average criterion from Dewitt et al. (2016) was -0.02 with a 95% interval of (-0.06,0.02). Therefore, it seems that participants in this experiment also assumed a base rate near 50%, since they weren't notified.
+
+Participants seem to bring prior assumptions of 50% base rates to these experiments, which are much higher than the naturally occuring base rates of events that researchers are often studying. This could suggest that participants assume inflated base rates for the low(er) probability events researchers are trying to study. Perhaps researchers could improve the external validity of their results by desining experiments with tasks that participants perceive with greater legitimacy, potentially reducing demand characteristics. 
+
+# Problem 12
+
+Canfield et al. (2016) did not impose a cost structure into the SDT model in order to try to capture the participants' own cost expectations of phishing emails. Rather, they compared the $c$ values for the detection and behavior tasks. 
+
+They expected less caution (higher $c$) for the detection tasks since there were less costs than implied with the behavior task. They also anticipated decision bias to be correlated with their reported consequences of falling for a phishing email. For participants notified of the base rate, they assumed the criterion would equal the base rate; they also assumed the criterion would equal the base rate if notification had no effect on performance. 
+
+In the behavior task, participants were asked how they would reponse to each e-mail. During this task, participants tended to have a bias towards not clicking the links. The mean response bias in the behavior task was -0.54 (sd = 0.66) for the first experiment and -.75 (sd =0.73) for the second experiment. Both of these values are lower than the mean response bias values found in the detection tasks performed in both experiments, with mean values of 0.32 (sd=0.46) and 0.30 (sd = 0.44), respectively. Therefore, Canfield et al. (2016) were correct in their prediction that participants would demonstrate higher decision bias for the detection task than the behavior task due to the lower implied cost in the detection task. 
+
+In the regression models predicting $c$ from a combination of task manipulation variables, stimuli response variables, and individual difference variables they also found that perceived consequences predicted $c$ in the detection tasks and behavior tasks. Higher perceived consequences were associated with a decrease in decision bias, $c$, suggesting that participants who perceived higher costs from falling for a phishing email were more cautious and were OK with higher FAs in exchange for a higher hit rate (H).
+
+Finally, as previously discussed, Canfield et al. found that notifying participants of the base rate did not appear to affect their decision bias. Across both experiments, the mean decision criterion values ranged from -0.75 to 0.3. The standard deviations are such that these values do not appear significantly different from zero; which suggests that the decision bias was effectively equal to the base rate, as predicted by Canfield et al. (2016) if base rate notification did not have an effect on performance. 
+
+
+I agree with Canfield et al. (2016) that it's difficult to impose a cost structure without confining the external validity to a certain type of computer user (i.e. personal laptop use versus grid operators). Furthermore, these experiences are infrequent, which make them difficult to learn from. I think it would have been interesting to include cost structure as a factor that was manipulated in the experimental design, comparing it to a control group that wasn't presented with a cost structure. The cost structures could try to mimic what would happen to personal laptop users as well as employees of a large company - perhaps these situations are most salient for a mTurk sample.
+
+
+# References
+Canfield, C.I., Fischhoff, B., & Davis, A. (2016). Quantifying phishing susceptibility for detection and behavior decisions. Human Factors, 0018720816665025.
+
+Davis, A., and De la Maza, C. (2016). 19-786 Stochastic Discrete Chioce Models. Carnegie Mellon Univeristy, Lecture Notes.
+
+Dewitt, B., Fischhoff, B., Davis, A., & Brommell, S.B. (2015). Environmental risk perception from visual cues: the psychophysics of tornado risk perception. Environmenta Research Letters, 10(2), 124009.
+
+
+
+
+
+
+
+
+
+

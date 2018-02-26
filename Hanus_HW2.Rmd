@@ -1,0 +1,536 @@
+---
+title: "Homework 2"
+author: "Nichole Hanus"
+date: "Monday, September 26, 2016"
+output: pdf_document
+---
+
+```{r, include=FALSE, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+## Set the directory
+setwd("C:/Users/hanusnil/Dropbox/S11. 19-786 Stochastic Discrete Choice Models/Homework 2")
+
+# install.packages("mlogit")
+library("mlogit")
+
+## for pretty tables
+install.packages("knitr", repos = "http://cran.us.r-project.org")
+library(knitr) 
+
+```
+
+# Problem 1: 
+## What are the different scenarios respondents are asked to make choices over? What are the characteristics (attributes) of the scenarios?
+
+Respondents are asked to make choices over various hypothetical energy scenarios in their respective state, which are described by four attributes: 
+
+1. Discussion of electricity portfolio (fraction of future electricity generation met by coal, natural gas, nuclear power, renewables, or demand side reductions from energy efficiency)
+
+2. Monthly electricity bill changes (economic cost as a percentage change to their current electricity bill)
+
+3. Change in annual $\text{CO}_{\text{2}}$ emissions relative to current levels
+
+4. Change in annual $\text{SO}_{\text{2}}$ emissions relative to current levels
+
+# Problem 2: 
+## What type of experimental design was used in the study? What are the different groups?
+
+They employ a between-subjects design with five experimental groups to study the relative importance of providing emissions information to individuals' preferences. Participants are randomly assigned to one of the following groups: 
+
+1. no emissions information group, 
+
+2. $\text{CO}_{\text{2}}$ information only group, 
+
+3. $\text{SO}_{\text{2}}$ information only group, 
+
+4. both types of information group, and 
+
+5. a group that is identical to the fourth group but only sees monetized benefits or damages associated with the change in emissions levels.
+
+\newpage
+
+# Problem 3: 
+## Estimate the model in Figure 1 using glm with dataglm.csv and mlogit with datamlogit.csv. Write the estimated utility function for the models. Do the coefficients make sense?
+
+
+```{r, include=FALSE, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+## Read in "dataglm.csv" data
+glm_Data <- read.csv("C:/Users/hanusnil/Dropbox/S11. 19-786 Stochastic Discrete Choice Models/Homework 2/dataglm.csv", header=TRUE)
+
+## Read in "datamlogit.csv" data
+mlogit_Data <- read.csv("C:/Users/hanusnil/Dropbox/S11. 19-786 Stochastic Discrete Choice Models/Homework 2/datamlogit.csv", header=TRUE)
+
+```
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+## Problem 3: Estimate the model in Figure 1
+
+## Multinomial Logit Model - mlogit (check with Table 10 - PDF pg 38)
+ML = mlogit.data(mlogit_Data, 
+                 id.var = "mTurk",
+                 choice = "chosen", 
+                 shape = "long", 
+                 alt.var = "alternativeID")
+
+figure1.mlogit = mlogit(chosen ~ natural.gas + nuclear + renewables + 
+                          efficiency + CO2 + SO2 + bill,data = ML)
+kable(coefficients(summary(figure1.mlogit)), digits = 3)
+
+
+## Multinomial Logit Model - glm (check with Table 11 - PDF pg 39)
+figure1.glm <- glm(chosen ~ relevel(portfolio, "coal") + bill.d + CO2.d + 
+                     SO2.d, data = glm_Data, family = binomial(link="logit"))
+kable(coefficients(summary(figure1.glm)), digits = 3)
+
+```
+
+\newpage 
+
+The estimated coefficients for both models (mlogit and glm) are very similar. Therefore, I will use the coefficients from the mlogit model to characterize the final estimated model:
+
+\begin{align}
+V_{ij} &= \beta_{int} + \beta_{1}gas_{ij} + \beta_{2}nuc_{ij} + \beta_{3}ren_{ij} + \beta_{4}ee_{ij}  \nonumber \\
+&+ \beta_{5}CO2_{ij} + \beta_{6}SO2_{ij} + \beta_{7}bill_{ij} \nonumber \\
+&= -0.05 + 0.211 gas_{ij} + 0.095 nuc_{ij} + 0.615 ren_{ij} + 0.265 ee_{ij}  \nonumber \\
+&- 1.704 CO2_{ij} - 1.635 SO2_{ij} - 3.659 bill_{ij} \nonumber 
+\end{align}
+
+Although the absolute magnitude of the coefficients aren't intuitive to me, I can make sense of the direction and relative magnitudes. According to our conversation in class, I belive that having a negative intercept might suggest an underlying bias towards selecting portfolios on the right side of the screen. Since the practice of choosing between two "future energy scenarios" on the left and right side of a screen is not replicated in the real world, this intercept is irrelevant and should technically be removed from the model. However, I kept it in attempt to produce results similar to those found in Sergi et al..
+
+Positive coefficients for the natural gas, nuclear, renewables, and energy efficiency portfolios suggest that US citizens (represented in this sample) prefer all of these portfolio alternatives to the current status quo. Furthermore, they prioritize the alternatives in the following ascending order: nuclear, natural gas, energy efficiency, and renewables. This suggest that participants found inherent utility in those types of technologies. From the literature, we know that society often feels uneasy towards nuclear due to their uncertainty in how it works and the high risks associated with the low probability events. Therefore, it's interesting that the coefficient is positive, suggesting that participants still preferred it to coal despite their uncertainties. Perhaps they understand nuclear to be a relatively clean electriciy source; at least, they might consider it to be cleaner than coal. Preferences towards natural gas and energy efficiency are roughly the same. Without knowledge of emissions changes or differences in electricity bills, preferences for renewables are rather high compared to the other portfolios suggesting participants felt positively about renewables. As expected, the coefficients for $\text{CO}_{\text{2}}$ and $\text{SO}_{\text{2}}$ emissions as well as monthly electricity bills are all negative. As these emissions increase and electricity bills increase, participants lose utility. 
+
+# Problem 4: 
+## Replicate Figure 1 by estimating the conditional probability of support and then constructing confidence intervals around the probability. Construct confidence intervals using parametric bootstrap.
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+## Problem 4: Replicate Figure 1
+
+## First, extract coefficients
+coefs.mlogit <- coef(figure1.mlogit)
+
+## 1. No change in emissions from baseline, renewables and baseline cost the same
+renewables <- c(1, 0, 0, 1, 0, 0, 0, 0)
+u.renewables <- t(coefs.mlogit) %*% renewables
+exp.renewables <- exp(-u.renewables)
+p.renewables <- 1/(1+exp.renewables)
+
+
+
+
+## 2. No change in emissions from baseline, renewables cost 20% more than baseline
+renewables.b20 <- c(1, 0, 0, 1, 0, 0, 0, .2)
+u.renewables.b20 <- t(coefs.mlogit) %*% renewables.b20
+exp.renewables.b20 <- exp(-u.renewables.b20)
+p.renewables.b20 <- 1/(1+exp.renewables.b20)
+
+## 3. CO2 emissions decrease by 30% from baseline, renewables and baseline cost the same
+renewables.c30 <- c(1, 0, 0, 1, 0, -.3, 0, 0)
+u.renewables.c30 <- t(coefs.mlogit) %*% renewables.c30
+exp.renewables.c30 <- exp(-u.renewables.c30)
+p.renewables.c30 <- 1/(1+exp.renewables.c30)
+
+## 4. CO2 emissions decrease by 30% from baseline, renewables cost 20% more than baseline
+renewables.c30b20 <- c(1, 0, 0, 1, 0, -.3, 0, .2)
+u.renewables.c30b20 <- t(coefs.mlogit) %*% renewables.c30b20
+exp.renewables.c30b20 <- exp(-u.renewables.c30b20)
+p.renewables.c30b20 <- 1/(1+exp.renewables.c30b20)
+
+## 5. SO2 emissions decrease by 30% from baseline, renewables and baseline cost the same
+renewables.s30 <- c(1, 0, 0, 1, 0, 0, -.3, 0)
+u.renewables.s30 <- t(coefs.mlogit) %*% renewables.s30
+exp.renewables.s30 <- exp(-u.renewables.s30)
+p.renewables.s30 <- 1/(1+exp.renewables.s30)
+
+## 6. SO2 emissions decrease by 30% from baseline, renewables cost 20% more than baseline
+renewables.s30b20 <- c(1, 0, 0, 1, 0, 0, -.3, .2)
+u.renewables.s30b20 <- t(coefs.mlogit) %*% renewables.s30b20
+exp.renewables.s30b20 <- exp(-u.renewables.s30b20)
+p.renewables.s30b20 <- 1/(1+exp.renewables.s30b20)
+
+## 7. Both SO2 and CO2 emissions decrease by 30% from baseline, 
+## renewables and baseline cost the same
+renewables.s30c30 <- c(1, 0, 0, 1, 0, -.3, -.3, 0)
+u.renewables.s30c30 <- t(coefs.mlogit) %*% renewables.s30c30
+exp.renewables.s30c30 <- exp(-u.renewables.s30c30)
+p.renewables.s30c30 <- 1/(1+exp.renewables.s30c30)
+
+## 8. Both SO2 and CO2 emissions decrease by 30% from baseline, 
+## renewables cost 20% more than baseline
+renewables.s30c30b20 <- c(1, 0, 0, 1, 0, -.3, -.3, .2)
+u.renewables.s30c30b20 <- t(coefs.mlogit) %*% renewables.s30c30b20
+exp.renewables.s30c30b20 <- exp(-u.renewables.s30c30b20)
+p.renewables.s30c30b20 <- 1/(1+exp.renewables.s30c30b20)
+
+## Extract the variance-covariance matrix:
+vcov.mlogit <- vcov(figure1.mlogit)
+## Use the mvtnorm package from MASS to simulate the variance in 
+## the probabilities using a parametric bootstrap
+# install.packages("MASS")
+library(MASS)
+mean.vec <- coef(figure1.mlogit)
+vcov2 <- vcov.mlogit
+sim <- mvrnorm(10000, mean.vec, vcov2)
+
+
+## Calculate the simulated utilities and confidence intervals:
+
+## 1. No change in emissions from baseline, renewables and baseline cost the same
+simu.renewables <- sim %*% renewables
+exps.renewables <- exp(-simu.renewables)
+simp.renewables <- 1/(1+exps.renewables)
+simp.renewables.low <- quantile(simp.renewables, 0.025)
+simp.renewables.up <- quantile(simp.renewables, 0.975)
+
+## 2. No change in emissions from baseline, renewables cost 20% more than baseline
+simu.renewables.b20 <- sim %*% renewables.b20
+exps.renewables.b20 <- exp(-simu.renewables.b20)
+simp.renewables.b20 <- 1/(1+exps.renewables.b20)
+simp.renewables.b20.low <- quantile(simp.renewables.b20, 0.025)
+simp.renewables.b20.up <- quantile(simp.renewables.b20, 0.975)
+
+## 3. CO2 emissions decrease by 30% from baseline, renewables and baseline cost the same
+simu.renewables.c30 <- sim %*% renewables.c30
+exps.renewables.c30 <- exp(-simu.renewables.c30)
+simp.renewables.c30 <- 1/(1+exps.renewables.c30)
+simp.renewables.c30.low <- quantile(simp.renewables.c30, 0.025)
+simp.renewables.c30.up <- quantile(simp.renewables.c30, 0.975)
+
+## 4. CO2 emissions decrease by 30% from baseline, renewables cost 20% more than baseline
+simu.renewables.c30b20 <- sim %*% renewables.c30b20
+exps.renewables.c30b20 <- exp(-simu.renewables.c30b20)
+simp.renewables.c30b20 <- 1/(1+exps.renewables.c30b20)
+simp.renewables.c30b20.low <- quantile(simp.renewables.c30b20, 0.025)
+simp.renewables.c30b20.up <- quantile(simp.renewables.c30b20, 0.975)
+
+## 5. SO2 emissions decrease by 30% from baseline, renewables and baseline cost the same
+simu.renewables.s30 <- sim %*% renewables.s30
+exps.renewables.s30 <- exp(-simu.renewables.s30)
+simp.renewables.s30 <- 1/(1+exps.renewables.s30)
+simp.renewables.s30.low <- quantile(simp.renewables.s30, 0.025)
+simp.renewables.s30.up <- quantile(simp.renewables.s30, 0.975)
+
+## 6. SO2 emissions decrease by 30% from baseline, renewables cost 20% more than baseline
+simu.renewables.s30b20 <- sim %*% renewables.s30b20
+exps.renewables.s30b20 <- exp(-simu.renewables.s30b20)
+simp.renewables.s30b20 <- 1/(1+exps.renewables.s30b20)
+simp.renewables.s30b20.low <- quantile(simp.renewables.s30b20, 0.025)
+simp.renewables.s30b20.up <- quantile(simp.renewables.s30b20, 0.975)
+
+## 7. Both SO2 and CO2 emissions decrease by 30% from baseline, 
+## renewables and baseline cost the same
+simu.renewables.s30c30 <- sim %*% renewables.s30c30
+exps.renewables.s30c30 <- exp(-simu.renewables.s30c30)
+simp.renewables.s30c30 <- 1/(1+exps.renewables.s30c30)
+simp.renewables.s30c30.low <- quantile(simp.renewables.s30c30, 0.025)
+simp.renewables.s30c30.up <- quantile(simp.renewables.s30c30, 0.975)
+
+## 8. Both SO2 and CO2 emissions decrease by 30% from baseline, 
+## renewables cost 20% more than baseline
+simu.renewables.s30c30b20 <- sim %*% renewables.s30c30b20
+exps.renewables.s30c30b20 <- exp(-simu.renewables.s30c30b20)
+simp.renewables.s30c30b20 <- 1/(1+exps.renewables.s30c30b20)
+simp.renewables.s30c30b20.low <- quantile(simp.renewables.s30c30b20, 0.025)
+simp.renewables.s30c30b20.up <- quantile(simp.renewables.s30c30b20, 0.975)
+
+## Plot these values to Replicate Figure 1
+probs <- as.matrix(cbind(p.renewables, p.renewables.b20, p.renewables.c30,
+                         p.renewables.c30b20, p.renewables.s30, p.renewables.s30b20, 
+                         p.renewables.s30c30,p.renewables.s30c30b20))
+
+coef.lower <- as.matrix(cbind(simp.renewables.low, simp.renewables.b20.low, 
+                              simp.renewables.c30.low, simp.renewables.c30b20.low, 
+                              simp.renewables.s30.low, simp.renewables.s30b20.low, 
+                              simp.renewables.s30c30.low, simp.renewables.s30c30b20.low))
+coef.upper <- as.matrix(cbind(simp.renewables.up, simp.renewables.b20.up, 
+                              simp.renewables.c30.up, simp.renewables.c30b20.up, 
+                              simp.renewables.s30.up, simp.renewables.s30b20.up, 
+                              simp.renewables.s30c30.up, simp.renewables.s30c30b20.up))
+
+plot(1:ncol(probs), probs[1,], type="b", 
+     ylab="prob. of support for renewables relative to coal baseline", 
+     ylim=c(0,1), 
+     xaxt="n",
+     xlab="")
+axis(side=1, at=1:ncol(probs), labels = c("emissions base, $ base", 
+                                          "emissions base, +20% $", 
+                                          "-30% CO2, $ base",
+                                          "-30% CO2, +20% $",
+                                          "-30% SO2, $ base",
+                                          "-30% sO2, +20% $",
+                                          "-30% both, $ base",
+                                          "-30% both, +20% $"), las=2, cex.axis=0.4)
+segments(x0 = 1:ncol(probs), y0 = coef.lower[1,],
+         x1 = 1:ncol(probs), y1 = coef.upper[1,],
+         col="black")
+
+```
+
+
+# Problem 5: 
+## How large are the effects of decreasing $\text{CO}_{\text{2}}$ by 30% compared to $\text{SO}_{\text{2}}$? What does this say about how people are making their decisions?
+
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+## How large are the effects of decreasing CO2 by 30%?
+CO2.30decrease <- c(1, 0, 0, 0, 0, -.3, 0, 0)
+u.CO2.30decrease <- t(coefs.mlogit) %*% CO2.30decrease
+exp.CO2.30decrease <- exp(-u.CO2.30decrease)
+p.CO2.30decrease <- 1/(1+exp.CO2.30decrease)
+
+## How large are the effects of decreasing SO2 by 30%?
+SO2.30decrease <- c(1, 0, 0, 0, 0, 0, -.3, 0)
+u.SO2.30decrease <- t(coefs.mlogit) %*% SO2.30decrease
+exp.SO2.30decrease <- exp(-u.SO2.30decrease)
+p.SO2.30decrease <- 1/(1+exp.SO2.30decrease)
+
+```
+
+The probability of selection for an "energy future" that reduces $\text{CO}_{\text{2}}$ emissions by 30%, regardless of portfolio type, $\text{SO}_{\text{2}}$ reductions, or bill adjustments, is `r round(p.CO2.30decrease*100, digits = 1)`%. The probability of selection for an "energy future" that reduces $\text{SO}_{\text{2}}$ emissions by 30%, regardless of portfolio type, $\text{CO}_{\text{2}}$ reductions, or bill adjustments, is `r round(p.SO2.30decrease*100, digits = 1)`%.
+
+It seems that the probability of a participant selecting an "energy future" increases to approximately 61% when $\text{CO}_{\text{2}}$ or $\text{SO}_{\text{2}}$ is decreased by 30%.Therefore, it appears that participants cluster the negative impacts related to "emissions" together and weight them with equal importance in their decision-making.
+
+
+# Problem 6: 
+## How do Sergi et al. ensure that respondents understand the task? How do Sergi et al. check whether respondents' choices are reasonable?
+
+Before taking the survey, participants are exposed to a thorough tutorial of the survey. First, they are asked to read an information sheet on the objectives and structure of the survey and asked to sign a consent form before proceeding. Next, they are provided a visual guide of the survey with additional information on the attributes of interest in the survey. Before starting the survey, participants are asked to answer a comprehension check to ensure they understood in the introductory material.
+
+They assess the consistency of individuals' responses by including attention checks, testing for consistent responses with transitive preferences, and checking for linearity in preferences. These checks were manifested in six questions that were fixed in each participant's set of 16 questions. 
+
+The attention checks included two components. The first component occurred after the respondents finished the tutorial. Participants were asked to answer two true-false questions related to the information that was just presented to them. They were asked about the type of electricity portfolios presented to them in the survey as well as how electricity prices affected their monthly electricity bills. Secondly, they were presented two relatively easy choice tasks that involved the participant picking between two of the same electricity portfolios - one of which had lower electricity bill costs and overall emissions. From Table 16 in the Appendix, we see that respondents in all experimental groups answered the four attention checks at rates that suggest they were not guessing (i.e. correct answer rates ranged between 94% - 100%).
+
+The transitivity check involved Sergi et al. designing three scenarios with different types of portfolios and varying levels of electricity bills and emissions/pollutant levels. Participants were then presented with three choice tasks comprised of combinations of those scenarios. From these choice tasks, Sergi et al. determined that only 6 of the possible 8 choice outcomes were conducive to transitive preferences. They then analyzed the performance of participants in each group to ensure that at least 75% of outcomes were consistent with transitive preferences; they found a high proportion of respondents (96-99%) met this criteria. 
+
+Finally, they also developed a linearity check in the form of two tasks that included different scenarios but resulted in the same differences between the two scenarios. In other words, the levels of the attributes were different in each of the scenarios, but the differences in levels from scenario A and scenario B in choice task 1 was the same as the differences in levels from scenario A and scenario B in choice task 2. Therefore, participants with linear preferences would consistently choose either AB or BA across the two scenarios (depending on their preferences). Similar to the attention checks, they noted that a participant choosing at random would make linear choices across the two choice tasks 50% of the time. They found that 4/5 of the experimental groups exhibited linear preferences greater than or equal to 75% of the time. Group 3 did not. They proposed three hypotheses for why they didn't see linear preferences among all groups: (1) there may be additional structure to the utility function that they didn't model (e.g. interaction terms), (2) nonlinear preferences may be due to treating gains and losses differently (e.g. consistent with Prospect Theory), and (3) the relationship may depend on the information provided in the task, which varied between experimental groups. 
+
+Sergi et al. also tested the legitimacy of their model by having participants rate the importance of each of the four attributes on a scale of 1-5. Their results were consistent with their model and their expectations: participants who saw emissions information rated the portfolio attribute lower in importance than all other participants and participants who received emissions information also rated it as more important than participants who didn't see that information. 
+
+# Problem 7: 
+## Replicate Figure 2 by estimating the WTP values for just Group 4 and then constructing confidence intervals around it using parametric bootstrap.
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+## Problem 7: Replicate Figure 2 by estimating the WTP values for 
+## just Group 4 and constructing condifence intervals
+
+## 1. Only CO2 reduced by 30%
+WTP.CO2 <- -(sim[,"CO2"]/sim[,"bill"])*-.3
+CO2.low <- quantile(WTP.CO2, 0.025)
+CO2.up <- quantile(WTP.CO2, 0.975)
+
+WTP.SO2 <- -(sim[,"SO2"]/sim[,"bill"])*-.3
+SO2.low <- quantile(WTP.SO2, 0.025)
+SO2.up <- quantile(WTP.SO2, 0.975)
+
+WTP.both <- -((sim[,"SO2"]*-.3 + sim[,"CO2"]*-.3)/sim[,"bill"])
+both.low <- quantile(WTP.both, 0.025)
+both.up <- quantile(WTP.both, 0.975)
+
+## Plot these values to Replicate Figure 1
+WTPs <- as.matrix(cbind(mean(WTP.CO2), mean(WTP.SO2), mean(WTP.both)))
+WTP.lower <- as.matrix(cbind(CO2.low, SO2.low, both.low))
+WTP.upper <- as.matrix(cbind(CO2.up, SO2.up, both.up))
+
+plot(1:ncol(WTPs), WTPs[1,], type="b", 
+     ylab="WTP (% increase in monthly bill)", 
+     ylim=c(0,1), 
+     xaxt="n",
+     xlab="")
+axis(side=1, at=1:ncol(WTPs), 
+     labels = c("-30% CO2", "-30% SO2", "-30% both"), 
+     las=2, cex.axis=1)
+segments(x0 = 1:ncol(WTPs), y0 = WTP.lower[1,],
+         x1 = 1:ncol(WTPs), y1 = WTP.upper[1,],
+         col="black")
+
+```
+
+# Problem 8: 
+## How might you use political party and income to model taste variation? Construct hypotheses about taste variation based on political party and income, and then test those models. Interpret the results in terms of probabilities and WTP.
+
+To use political party and income to model taste variation, I would consider a multinomial logit that includes individual-attribute coefficients. My first set of interactions would be political party with the $\text{SO}_{\text{2}}$ and $\text{CO}_{\text{2}}$ emission attributes of the "energy future." My second set of interactions would be income with the bill adjustments of the "energy future." This model is defined below:
+\begin{align}
+V_{ij} &= \beta_{int} + \beta_{1}gas_{ij} + \beta_{2}nuc_{ij} + \beta_{3}ren_{ij} + \beta_{4}ee_{ij}  \nonumber \\
+&+ \beta_{5}CO2_{ij} + \beta_{6}SO2_{ij} + \beta_{7}bill_{ij} \nonumber \\
+&+ \alpha_{5}CO2_{ij} \times party_{i} + \alpha_{6}SO2_{ij} \times party_{i} +  \alpha_{7}bill_{ij} \times income_{i} \nonumber
+\end{align}
+
+HO1: There will be no significant difference in sensitivities to $\text{CO}_{\text{2}}$ and $\text{SO}_{\text{2}}$ emissions across all political party groups.              
+HA1: Republicans will gain less utility from a reduction in $\text{CO}_{\text{2}}$ and/or $\text{SO}_{\text{2}}$ emissions than Democrats across all types of portfolios and changes in bills.
+
+HO2: There will be no significant difference in sensitivities to bill adjustments across all income groups.
+HA2: Participants with higher incomes will lose less utility from an increase in monthly electricity bills than participants with lower incomes across all types of portfolios and changes in $\text{CO}_{\text{2}}$ and $\text{SO}_{\text{2}}$ emissions. 
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+## Problem 8: Construct hypotheses about taste and test those models
+Hypotheses.glm <- glm(chosen ~ relevel(portfolio, "coal") + bill.d + CO2.d + 
+                        SO2.d + CO2.d:PoliticalParty + SO2.d:PoliticalParty + 
+                        bill.d:Income, data = glm_Data, family = binomial(link="logit"))
+coefs.hypotheses <- coef(Hypotheses.glm)
+kable(coefficients(summary(Hypotheses.glm)), digits = 3)
+
+## Test HO1: Check Probabilities of supporting an "energy future" for a 
+## portfolio with a decrease in CO2 and SO2 emissions for a Democrat
+dem.emissions <- c(1, 0, 0, 0, 0, 0, 0, 0, -.3, 0, 0, 0, 0, 
+                   -.3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+u.dem.emissions <- t(coefs.hypotheses) %*% dem.emissions 
+exp.dem.emissions <- exp(-u.dem.emissions)
+p.dem.emissions <- 1/(1+exp.dem.emissions)
+dem.WTP.emissions <- -(coefs.hypotheses[9]*-.3+coefs.hypotheses[14]*-.3)/coefs.hypotheses[6]
+
+## Check probabilities of supporing an "energy future" for a 
+## portfolio with a decrease in CO2 and SO2 emissions for a Republican
+rep.emissions <- c(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+                   -.3, 0, 0, 0, 0, -.3, 0, 0, 0, 0, 0, 0, 0)
+u.rep.emissions <- t(coefs.hypotheses) %*% rep.emissions 
+exp.rep.emissions <- exp(-u.rep.emissions)
+p.rep.emissions <- 1/(1+exp.rep.emissions)
+rep.WTP.emissions <- -(coefs.hypotheses[13]*-.3+coefs.hypotheses[18]*-.3)/coefs.hypotheses[6]
+
+## Test HO2
+## Check Probabilities of supporting an "energy future" for 
+## a portfolio with an increase in energy bill costs for
+## the highest income bracket (>$200k) and the lowest income bracket 
+## (<$20k) - assume this is a linear relationship
+low.bill <- c(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .2, 0, 0)
+u.low.bill <- t(coefs.hypotheses) %*% low.bill 
+exp.low.bill <- exp(-u.low.bill)
+p.low.bill <- 1/(1+exp.low.bill)
+WTP.low.bill <- -(coefs.hypotheses[23]*.2)/coefs.hypotheses[6]
+
+hi.bill <- c(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .2, 0)
+u.hi.bill <- t(coefs.hypotheses) %*% hi.bill 
+exp.hi.bill <- exp(-u.hi.bill)
+p.hi.bill <- 1/(1+exp.hi.bill)
+WTP.hi.bill <- -(coefs.hypotheses[24]*.2)/coefs.hypotheses[6]
+
+```
+
+As hypothesized, I found that a Democrat is more likely to support an energy future that reduces $\text{CO}_{\text{2}}$ and $\text{SO}_{\text{2}}$ emissions by 30% than a Republican; the probability of support from a Democrat is `r round(p.dem.emissions*100, digits = 0)`% while the probability of support from a Republican is `r round(p.rep.emissions*100, digits = 0)`%.  Furthermore, a Democrat is willing to increase their monthly electricity bills by `r round(dem.WTP.emissions*100, digits = 0)`% in order to secure an energy future that reduces $\text{CO}_{\text{2}}$ and $\text{SO}_{\text{2}}$ emissions by 30%. However, a Republican is more likely to have a negative WTP for this feature (`r round(rep.WTP.emissions*100, digits = 0)`% bill change), which depicts an unwillingness to pay. 
+
+As I predicted, it appears that participants in the lowest income bracket (<$20k) exhibited a lower probability to select the "energy future" that promised an increase in electricity bills by 20% than participants in the highest income bracket (>$200k). However, this difference in probabilities was lower than expected;the probability of support from a low-income participant is `r round(p.low.bill*100, digits = 0)`% while the probability of support from a hi-income participant is `r round(p.hi.bill*100, digits = 0)`%. It stands to reason that neither party would be pleased to increased their electriciy bills, but I expected the low-income participants to exhibit much lower probabilities of selection (or support) than participants in the hi-income bracket. When considering WTP for each group, I found that low-income participants were expectedly less agreeable to the bill increases than the hi-income participants; low-income participants displayed a WTP equivalent to a bill change of  `r round(WTP.low.bill*100, digits = 0)`% and hi-income participants displayed a WTP equivalent to bill change of `r round(WTP.hi.bill*100, digits = 0)`%.    
+
+
+
+\newpage
+
+# Problem 9: 
+## Test IIA by eliminating trials where renewables were available, re-estimating the model, and using Hausman and McFadden's test. What are the results? Does proportional substitution hold?
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+## Test IIA by eliminating trials where renewable were available
+## re-estimating the model
+## and using Hausman and McFadden's test
+
+## First, drop the trials where renewables are available
+## Need to make a vector of trials
+mlogit_Data$trial <- floor(mlogit_Data$X)
+inds <- mlogit_Data$trial[mlogit_Data$portfolio == "renewables"]
+mlogit_Data1 <- mlogit_Data[!mlogit_Data$trial %in% inds, ]
+
+## Re-fromat data for mlogit
+ML1 <- mlogit.data(mlogit_Data1, 
+                 id.var = "mTurk",
+                 choice = "chosen", 
+                 shape = "long", 
+                 alt.var = "alternativeID")
+
+## Re-run model on reduced dataset
+figure1.mlogit1 = mlogit(chosen ~ natural.gas + nuclear + 
+                           efficiency + CO2 + SO2 + bill,data = ML1)
+
+## Next, extract the coefficients from each model, 
+## dropping the ones that are unique to the larger model
+coefs1 <- coef(figure1.mlogit)[-4]
+coefs2 <- coef(figure1.mlogit1)
+
+## Also extract the variance covariance matrices:
+vcov1 <- vcov(figure1.mlogit)[-4, ]
+vcov1 <- vcov1[, -4]
+vcov2 <- vcov(figure1.mlogit1)
+
+HM <- t(coefs1 - coefs2) %*% solve(vcov2 - vcov1) %*% (coefs1 - coefs2)
+df1 <- dim(vcov1)[2]
+p.value <- 1 - pchisq(HM, df = df1)
+
+```
+
+After performing the Hausman and McFadden's Test on the dataset without the renewables trials, we obtain a p-value of `r round(p.value, digits = 3)`. Since this value is statistically significant at the p=0.05 level, we find that proportional substitution does not hold and IIA is violated in this model.
+
+# Problem 10: 
+## Suppose society had a choice between the five available portfolios. Compare the consumer's surplus if those portfolios were at the status quo (no change across all attributes) versus a 30% reduction in $\text{CO}_{\text{2}}$/$\text{SO}_{\text{2}}$ and 20% increase in bills. Interpret the consumer's surplus in terms of the electricity bills.
+
+I use equation 11.31 from Davis and De la Maza (2016) to determine the change in consumer's surplus if those portfolios went from the status quo to a 30% reduction in $\text{CO}_{\text{2}}$/$\text{SO}_{\text{2}}$ and 20% increase in bills. This equation is:
+
+\begin{align}
+\Delta E(CS_{n}) = \frac{1}{\alpha_{n}}\left [  log(\sum_{j}e^{V_{nj}^1}) -  log(\sum_{j}e^{V_{nj}^0})    \right] \nonumber
+\end{align}
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+## Determine utility for everyone at the case of a 
+## 30% reduction in CO2/SO2 and 20% increase in bills
+
+## STATUS QUO - before energy future change
+V0.coal <- c(1, 0, 0, 0, 0, 0, 0, 0)
+u.V0.coal <- t(coefs.mlogit) %*% V0.coal
+V0.gas  <- c(1, 1, 0, 0, 0, 0, 0, 0)
+u.V0.gas <- t(coefs.mlogit) %*% V0.gas
+V0.nuc  <- c(1, 0, 1, 0, 0, 0, 0, 0)
+u.V0.nuc <- t(coefs.mlogit) %*% V0.nuc
+V0.ren  <- c(1, 0, 0, 1, 0, 0, 0, 0)
+u.V0.ren <- t(coefs.mlogit) %*% V0.ren
+V0.ee   <- c(1, 0, 0, 0, 1, 0, 0, 0)
+u.V0.ee <- t(coefs.mlogit) %*% V0.ee
+
+## NEW POLICY - after energy future change
+V1.coal <- c(1, 0, 0, 0, 0, -.3, -.3, .2)
+u.V1.coal <- t(coefs.mlogit) %*% V1.coal
+V1.gas  <- c(1, 1, 0, 0, 0, -.3, -.3, .2)
+u.V1.gas <- t(coefs.mlogit) %*% V1.gas
+V1.nuc  <- c(1, 0, 1, 0, 0, -.3, -.3, .2)
+u.V1.nuc <- t(coefs.mlogit) %*% V1.nuc
+V1.ren  <- c(1, 0, 0, 1, 0, -.3, -.3, .2)
+u.V1.ren <- t(coefs.mlogit) %*% V1.ren
+V1.ee   <- c(1, 0, 0, 0, 1, -.3, -.3, .2)
+u.V1.ee <- t(coefs.mlogit) %*% V1.ee 
+
+## Calculate the consumer's surplus
+right.side <- log(exp(u.V1.coal)+exp(u.V1.gas)+exp(u.V1.nuc)+exp(u.V1.ren)+exp(u.V1.ee))- 
+              log(exp(u.V0.coal)+exp(u.V0.gas)+exp(u.V0.nuc)+exp(u.V0.ren)+exp(u.V0.ee))
+
+```
+
+The resulting change in consumer surplus is depicted below:
+
+\begin{align}
+\Delta E(CS_{n}) = \frac{1}{\alpha_{n}} `r round(right.side, digits = 2) ` \nonumber
+\end{align}
+
+I believe this suggests that members of society would be willing to see an additional increase in monthly electricity bills of 27% in order to see an energy future that reduces $\text{CO}_{\text{2}}$ and $\text{SO}_{\text{2}}$ emissions each by 30% and already increases monthly electricity bills by 20%. Therefore, consumers are willing to pay an increase in their monthly electricity bills of 47%, on average, to secure an energy future that ensures $\text{CO}_{\text{2}}$ and $\text{SO}_{\text{2}}$ reductions of 30% each.
+
+
+# References
+Davis, A., and De la Maza, C. (2016). 19-786 Stochastic Discrete Chioce Models. Carnegie Mellon Univeristy, Lecture Notes.
+
+Sergi, B., Azevedo, I., & Davis, A. (2016). Understanding public perceptions of energy tradeoffs in climate, health, and consumer costs. Working paper.
+
+
+
+
+
+
+
+
+
+
+
+

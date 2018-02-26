@@ -1,0 +1,579 @@
+---
+title: "Homework 4"
+author: "Nichole Hanus"
+date: "Monday, November 28, 2016"
+output: pdf_document
+---
+
+```{r, include=FALSE, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+## Set the directory
+setwd("C:/Users/hanusnil/Dropbox/S11. 19-786 Stochastic Discrete Choice Models/Homework 4")
+
+# install.packages("mlogit")
+library("mlogit")
+
+## for pretty tables
+install.packages("knitr", repos = "http://cran.us.r-project.org")
+library(knitr) 
+
+## Install data from Huber & Train (2014)
+data("Electricity", package = "mlogit")
+Electr <- mlogit.data(Electricity,
+                      id.var = "id",
+                      choice = "choice",
+                      varying = 3:26,
+                      shape = "wide",
+                      sep = "")
+
+
+
+# The following can be used to create alternative-specific constants by hand:
+Electr$asc2 <- as.numeric(Electr$alt == 2)
+Electr$asc3 <- as.numeric(Electr$alt == 3)
+Electr$asc4 <- as.numeric(Electr$alt == 4)
+
+```
+
+# Problem 1: 
+## Use the mlogit package to fit multinomial, heteroskedastic, nested, and mixed logit models. For the nested logit have alt1 and alt2 in nest1 and alt3 and alt4 in nest2. For the mixed logit allow taste heterogeneity across individuals for all attributes except the alternative-specific constants. Interpret the estimated fixed effects for each model. Do they make sense?
+
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+## 1.a. Multinomial Logit
+ML.model <- mlogit(choice ~ pf + cl + loc + wk + tod + seas|1, 
+                   data = Electr, 
+                   reflevel="1")
+summary(ML.model)
+
+
+## 1.b. Heteroskedastic Logit
+Het.model <- mlogit(choice ~ pf + cl + loc + wk + tod + seas|1, 
+                    data = Electr,
+                    heterosc = TRUE)
+summary(Het.model)
+
+
+## 1.c. Nested Logit
+# create column of explicit alternative names
+NL.model <- mlogit(choice ~ pf + cl + loc + wk + tod + seas|1,
+                   data = Electr,
+                   reflevel = "1",
+                   nests = list(nest1 = c("1", "2"),
+                                nest2 = c("3", "4")),
+                   unscaled = FALSE,
+                   constPar = c("iv.nest2"))
+summary(NL.model)
+
+
+## 1.d. Mixed Logit
+Mix.model <- mlogit(choice ~ pf + cl + loc + wk + tod + seas + asc2 + asc3 + asc4|0,
+              rpar = c(pf = "n", cl = "n", loc = "n", wk = "n", tod = "n", seas = "n"),
+              correlation = TRUE,
+              R = 1000,
+              halton = NA,
+              panel = TRUE,
+              data = Electr)
+summary(Mix.model)
+
+```
+
+\break
+
+We are asked to interpret and compare the fixed effects for all of these models. From my understanding of the question, the last model (mixed logit), was to be the only model with alternative-specific intercepts. I will try to interpret the meaning of the following attributes: (1) pf - fixed price in cents per kWh, (2) cl - contract length in years, (3) loc - the supplier is local, (4) wk - the supplier is well-known, (4) tod - whether time of day pricing was offered, and (5) seas - whether a seasonable rate is available. In all of the models, the fixed effects have the same signs (positive or negative) and order. However, it seems as though the multinomoal logit, heteroskedastic logit, and nested logit all report similar estimates and the mixed logit reports inflated estimates for all fixed effects. Across the board, the following list of attributes describes their importance in picking a portfolio (in ascending order): whether a seasonable rate is available, whether time of day pricing is offered, the fixed price in cents per kwh, the contract length, whether the supplier is well-known, and whether the supplier is local. Although I'm unsure if I did it correctly, we were asked to allow taste heterogeneity across all individuals for all attributes except the alternative-specific constants in the mixed logit. This last model estimated much higher fixed effects - they nearly doubled. This could be due to the correlation that likely exists between the fixed price, time of day pricing, and seasonable rate as well as the correlation that likely exists between the suppliers being local and/or well-known. I also recall that mixed logit (mlogit) tends to inflate coefficients when their distributions are mispecified and at least one parameter should be a log-normal, for instance.
+
+
+# Problem 2
+## Extract the variance-covariance matrix of the random effects for the mixed logit model using the cov.mlogit() function (note that the information presented by the summary() function is the parameters from the cholesky decomposition, not the variance-covariance parameters). Interpret the variance-covariance matrix. Use the cor.mlogit() function to extract the correlation matrix. What is the correlation between each of the random effects? How do you interpret the results?
+
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+## Variance-covariance matrix of the random effects for the mixed logit
+(vcov.mix <- cov.mlogit(Mix.model))
+
+```
+
+From the variance-covariance matrix, we can see how sensitive the survey participants are to these various attributes of supplier options. We see the highest heterogeniety in customer preferences of time-of-day and seasonal pricing (variances are 52 and 50, respectively), meaning there is a wide range in people's preferences and concerns for this attribute. There is less heterogeneity, but still a considerable amount, for attributes such as whether or not the supplier is local and well-known. Finally, people tend to agree about the importance of fixed prices and contract lengths as those variances are 0.70 and 0.20, respectively. We can also see that time-of-day and seasonal pricing ammounts to roughly 93% of the heterogeneity captured in the model. We find that the heterogenity estimated for each attribute is positively correlated with the heterogeneity estimated for the other attributes (e.g. fixed price heterogeneity is positively correlated with contract length heterogeneity).
+
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+## Correlation matrix of the mixed logit
+(corr.mix <- cor.mlogit(Mix.model))
+
+```
+
+From the correlation matrix, we note immediately that all of the attributes for the supplier options are positively correlated with each other. As expected, we find the highest correlation among fixed pricing, time-of-day pricing, and seasonal pricing. In fact, fixed pricing is correlated with seasonal pricing at a value of 0.94 and seasonal pricing is correlated with time-of-day pricing at a value of 0.93. We also see a strong correlation of 0.77 between whether or not the supplier is local and well-known. A little less intuitive to me was the rather high correlation of 0.70 between time-of-day pricing and whether or not the supplier was local and a correlation of 0.62 between seasonal pricing and whether or not the supplier was local. The only two variables where I might have a expected a negative correlation was fixed pricing and contract length, as I thought maybe suppliers didn't like to lock customers into low prices for too long. However, the correlation was relatively low anyways (0.13). Overall, these findings from the correlation matrix were not too surprising. 
+
+# Problem 3
+## Estimate the mixed logit model using gmnl and construct histograms/density plots and bivariate scatter plots of the coefficients for each individual (i.e., the fixed plus random effects). What do you conclude?
+
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+#install.packages("gmnl")
+install.packages("gmnl", repos = "http://cran.us.r-project.org")
+library(gmnl)
+
+GMix.model <- gmnl(choice ~ pf + cl + loc + wk + tod + seas + asc2 + asc3 + asc4|0,
+                  ranp = c(pf = "n", cl = "n", loc = "n", wk = "n", tod = "n", seas = "n"),
+                  model = "mixl",
+                  correlation = TRUE,
+                  R = 1000,
+                  halton = NA,
+                  panel = TRUE,
+                  data = Electr)
+summary(GMix.model)
+
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, cache=TRUE, out.width="0.33\\textwidth"}
+
+# Density plot for each coefficient
+
+# Fixed price in cents per kwh
+# Plot sensity of pf
+plot(GMix.model, par = "pf",
+     effect = "ce", type = "density", col = "grey")
+# plot individual coefficients
+plot(GMix.model, par = "pf",
+     effect = "ce", ind = TRUE, id = 1:221)
+
+# Contract length in years
+# Plot sensity of cl
+plot(GMix.model, par = "cl",
+     effect = "ce", type = "density", col = "grey")
+# plot individual coefficients
+plot(GMix.model, par = "cl",
+     effect = "ce", ind = TRUE, id = 1:221)
+
+# The supplier is local
+# plot density of loc
+plot(GMix.model, par = "loc",
+     effect = "ce", type = "density", col = "grey")
+# plot individual coefficients
+plot(GMix.model, par = "loc",
+     effect = "ce", ind = TRUE, id = )
+
+# The supplier is well-known
+# plot density of wk
+plot(GMix.model, par = "wk",
+     effect = "ce", type = "density", col = "grey")
+# plot individual coefficients
+plot(GMix.model, par = "wk",
+     effect = "ce", ind = TRUE, id =)
+
+# Whether time of day pricing was offered
+# plot density of tod
+plot(GMix.model, par = "tod",
+     effect = "ce", type = "density", col = "grey")
+# plot individual coefficients
+plot(GMix.model, par = "tod",
+     effect = "ce", ind = TRUE, id =)
+
+# Seasonal rate available
+# plot density of seas
+plot(GMix.model, par = "seas",
+     effect = "ce", type = "density", col = "grey")
+# plot individual coefficients
+plot(GMix.model, par = "seas",
+     effect = "ce", ind = TRUE, id = )
+
+```
+
+We see interesting effects from the density plots and individual coefficient plots. From the individual coefficient plots, we see that the majority of participants had a coefficient estimated for them for fixed pricing and contract length. We also don't see too much variation for these variables and not really any outliers. For the fixed pricing coefficient, the range is roughly between -1.5 and -0.5, while the range for the contract length coefficient is roughly between -2 and 1. Next, it looks like only 10 participants had coefficients estimated for whether or not the supplier is local, whether or not the supplier is well-known, time-of-day pricing and seasonal pricing. I'm not sure if that is the correct interpretation of why there is only 10 coefficients displayed. This likely explains the variances we saw in the previous variance-covariance matrix and it also might explain why there was a correlation between the time-of-day and seasonal pricing variables and whether or not the supplier is local - perhaps these 10 participants were the only ones asked about suppliers with these options(?). The density plots for these six coefficients is confusing. The majority of the plots are empty under the line, and I'm not sure if that represents low density or an error in computing.
+
+Next, we will consider bivariate scatter plots.
+
+\break
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, cache=TRUE, out.width="0.33\\textwidth"}
+
+# Bivariate scatter plots of the coefficients for each individual
+# fixed plus random effects
+# First, need to make vectors of fixed plus random effects for each variable:
+pf.ind <- effect.gmnl(GMix.model, par = "pf", effect = "ce")
+pf.fr <- coef(GMix.model)["pf"] + pf.ind$mean
+
+cl.ind <- effect.gmnl(GMix.model, par = "cl", effect = "ce")
+cl.fr <- coef(GMix.model)["cl"] + cl.ind$mean
+
+loc.ind <- effect.gmnl(GMix.model, par = "loc", effect = "ce")
+loc.fr <- coef(GMix.model)["loc"] + loc.ind$mean
+
+wk.ind <- effect.gmnl(GMix.model, par = "wk", effect = "ce")
+wk.fr <- coef(GMix.model)["wk"] + wk.ind$mean
+
+tod.ind <- effect.gmnl(GMix.model, par = "tod", effect = "ce")
+tod.fr <- coef(GMix.model)["tod"] + tod.ind$mean
+
+seas.ind <- effect.gmnl(GMix.model, par = "seas", effect = "ce")
+seas.fr <- coef(GMix.model)["seas"] + seas.ind$mean
+
+# scatterplot of pf and cl coefficients
+plot(pf.fr, cl.fr)
+abline(lm(cl.fr ~ pf.fr))
+
+# scatterplot of pf and loc coefficients
+plot(pf.fr, loc.fr)
+abline(lm(loc.fr ~ pf.fr))
+
+# scatterplot of pf and wk coefficients
+plot(pf.fr, wk.fr)
+abline(lm(wk.fr ~ pf.fr))
+
+# scatterplot of pf and tod coefficients
+plot(pf.fr, tod.fr)
+abline(lm(tod.fr ~ pf.fr))
+
+# scatterplot of pf and seas coefficients
+plot(pf.fr, seas.fr)
+abline(lm(seas.fr ~ pf.fr))
+
+```
+
+For the bivariate scatter plots, I decided to consider how all other attributes related to the fixed pricing. These plots tend to show what we saw in the variance-covariance and correlation matrices from the mlogit mixed logit model. All attributes are positively correlated with the fixed pricing attributes. 
+
+For contract length, the regression line is not very steep, which suggests a weak relationship as previously identified by the low correlation value in the mlogit model. 
+
+With the local supplier / fixed pricing plot, we see that there is more heterogeneity among people's preferences for local suppliers. We also see a tight distribution of points around the regression line. It appears that as the preference for a local supplier increases, the preferences for fixed pricing values also tend to increase.
+
+Next, we do not see such as strong a relationship between whether or not the supplier is well-known and the fixed pricing; generally the relationship is positive. As we know from the variance-covariance matrix, there is much more heterogeneity with whether or not the supplier is well-known and the fixed pricing coefficients. 
+
+There seems to be stronger relationships between the time-of-day pricing and the fixed pricing, as indicated by a steeper simple linear regression line with a tighter distribution of points around the regression line. The same comments are true for the seasonal pricing and fixed pricing bivariate plot. 
+
+# Problem 4
+## Use information from your mixed logit model and a Cholesky decomposition to simulate a single draw from a uility function for one of the alternatives. 
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+# Follow equation 22.19 to simulate a single draw from a utility function
+# Generate regressors:
+ones <- rep(1, nrow(Electr))
+pf.v   <- Electr$pf
+cl.v   <- Electr$cl
+loc.v  <- Electr$loc
+wk.v   <- Electr$wk
+tod.v  <- Electr$tod
+seas.v <- Electr$seas
+
+# Generate beta vector
+beta.asc2 <- coef(GMix.model)[1]
+beta.asc3 <- coef(GMix.model)[2]
+beta.asc4 <- coef(GMix.model)[3]
+beta.pf   <- coef(GMix.model)[4]
+beta.cl   <- coef(GMix.model)[5]
+beta.loc  <- coef(GMix.model)[6]
+beta.wk   <- coef(GMix.model)[7]
+beta.tod  <- coef(GMix.model)[8]
+beta.seas <- coef(GMix.model)[9]
+
+# Cholesky parameters
+s.pf      <- coef(GMix.model)[10]
+s.pfcl    <- coef(GMix.model)[11]
+s.pfloc   <- coef(GMix.model)[12]
+s.pfwk    <- coef(GMix.model)[13]
+s.pftod   <- coef(GMix.model)[14]
+s.pfseas  <- coef(GMix.model)[15]
+s.cl      <- coef(GMix.model)[16]
+s.clloc   <- coef(GMix.model)[17]
+s.clwk    <- coef(GMix.model)[18]
+s.cltod   <- coef(GMix.model)[19]
+s.clseas  <- coef(GMix.model)[20]
+s.loc     <- coef(GMix.model)[21]
+s.locwk   <- coef(GMix.model)[22]
+s.loctod  <- coef(GMix.model)[23]
+s.locseas <- coef(GMix.model)[24]
+s.wk      <- coef(GMix.model)[25]
+s.wktod   <- coef(GMix.model)[26]
+s.wkseas  <- coef(GMix.model)[27]
+s.tod     <- coef(GMix.model)[28]
+s.todseas <- coef(GMix.model)[29]
+s.seas    <- coef(GMix.model)[30]
+
+# random deviates
+pf.effect <- effect.gmnl(GMix.model, par = "pf", effect = "ce")
+pf.q <- pf.effect$mean
+
+cl.effect <- effect.gmnl(GMix.model, par = "cl", effect = "ce")
+cl.q <- cl.effect$mean
+
+loc.effect <- effect.gmnl(GMix.model, par = "loc", effect = "ce")
+loc.q <- loc.effect$mean
+
+wk.effect <- effect.gmnl(GMix.model, par = "wk", effect = "ce")
+wk.q <- wk.effect$mean
+
+tod.effect <- effect.gmnl(GMix.model, par = "tod", effect = "ce")
+tod.q <- tod.effect$mean
+
+seas.effect <- effect.gmnl(GMix.model, par = "seas", effect = "ce")
+seas.q <- seas.effect$mean
+
+# generate utility outcomes for ASC2 supplier
+eta <- ones*beta.asc2 + pf.v*beta.pf + cl.v*beta.cl + loc.v*beta.loc + wk.v*beta.wk + tod.v*beta.tod + seas.v*beta.seas + pf.v*pf.q*s.pf + cl.v*cl.q*s.cl + loc.v*loc.q*s.loc + wk.v*wk.q*s.wk + tod.v*tod.q*s.tod + seas.v*seas.q*s.seas + pf.v*cl.q*s.pfcl + pf.v*loc.q*s.pfloc + pf.v*wk.q*s.pfwk + pf.v*tod.q*s.pftod + pf.v*seas.q*s.pfseas + cl.v*loc.q*s.clloc + cl.v*wk.q*s.clwk + cl.v*tod.q*s.cltod + cl.v*seas.q*s.clseas + loc.v*wk.q*s.locwk + loc.v*tod.q*s.loctod + loc.v*seas.q*s.locseas + wk.v*tod.q*s.wktod + wk.v*seas.q*s.wkseas + tod.v*seas.q*s.todseas
+
+# Simulate one utility for ASC2 supplier
+eta.1 <- eta[1]
+
+```
+
+I used Equation 22.19 and the methods outlined on pg. 490 from Davis and De la Maza (2016) and  found that one draw from a utility function of a person who chooses ASC2 as their supplier is `r round(eta.1, digits = 0)`.
+
+# Problem 5
+## Calculate the unconditional WTP and 95% confidence interval for a shorter contract using a normal distrbution for both price and contract length. Compare this to the log-normal for price assuming independent random effects. Which is more appropriate and why?
+
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+# Can use eq. 22.22 to get the unconditional WTP for a shorter contract
+# by drawing contract from it's distribution (normal) and beta from it's distribution
+# treat beta-hat as fixed and take draws using sigma.
+
+# mean coefficients
+coefs <- coef(GMix.model)
+mu.pf <- coefs["pf"]
+mu.cl <- coefs["cl"]
+
+# get sigmas
+re.vcov <- cov.gmnl(GMix.model)[c("cl", "pf"), c("cl", "pf")]
+fe.vcov <- vcov(GMix.model)[c("cl", "pf"), c("cl", "pf")]
+sigma.pf.re <- sqrt(re.vcov["pf", "pf"])
+sigma.pf.fe <- sqrt(fe.vcov["pf", "pf"])
+sigma.cl.re <- sqrt(re.vcov["cl", "cl"])
+sigma.cl.fe <- sqrt(fe.vcov["cl", "cl"])
+
+E.WTP <- c()
+for(i in 1:1000){
+  pf.draw <- rnorm(1, mu.pf, sigma.pf.fe)
+  pf.sims <- rnorm(100000, pf.draw, sigma.pf.re)
+  cl.draw <- rnorm(1, mu.cl, sigma.cl.fe)
+  cl.sims <- rnorm(100000, cl.draw, sigma.cl.re)
+# WTP
+WTP <- cl.sims/pf.sims
+E.WTP[i] <- mean(WTP) 
+}
+
+mean.EWTP <- mean(E.WTP) # .389
+lower.EWTP <- quantile(E.WTP, .025) # -2.84
+upper.EWTP <- quantile(E.WTP, .975) # 4.287
+min.EWTP <- min(E.WTP)
+max.EWTP <- max(E.WTP)
+
+
+# Compare to the log-normal for price
+E.WTP2 <- c()
+for(i in 1:1000){
+  pf.draw2 <- rnorm(1, mu.pf, sigma.pf.fe)
+  pf.sims2 <- rlnorm(100000, 
+                    meanlog = pf.draw2, 
+                    sdlog = sigma.pf.re)
+  cl.draw2 <- rnorm(1, mu.cl, sigma.cl.fe)
+  cl.sims2 <- rnorm(100000, cl.draw2, sigma.cl.re)
+# WTP
+WTP2 <- cl.sims2/pf.sims2
+E.WTP2[i] <- mean(WTP2) 
+}
+
+mean.EWTP2 <- mean(E.WTP2) # -.82
+lower.EWTP2 <- quantile(E.WTP2, .025) # -1.02
+upper.EWTP2 <- quantile(E.WTP2, .975) # -0.63
+min.EWTP2 <- min(E.WTP2)
+max.EWTP2 <- max(E.WTP2)
+
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, cache=TRUE, out.width="0.5\\textwidth"}
+
+# Histogram of WTP, normal distributions
+hist(E.WTP, breaks = "FD", main = "Unconditional WTP, both normal distributions")
+
+# Histogram of WTP, normal dist. for cl and log normal for pf
+hist(E.WTP2, breaks = "FD", main = "Unconditional WTP, fixed price with log-normal distribution")
+
+```
+
+The mean unconditional willingness to pay for a shorter contract using a normal distrbution for both price and contract length is `r round(mean.EWTP, digits = 2)` with a 95% confidence interval ranging from [`r round(lower.EWTP, digits = 2)` to `r round(upper.EWTP, digits = 2)`]. Assuming independent random effects, the mean willingness to pay for a shorter contract using a log normal distribution for price and a normal distribution for length is `r round(mean.EWTP2, digits = 2)` with a 95% confidence interval ranging from [`r round(lower.EWTP2, digits = 2)` to `r round(upper.EWTP2, digits = 2)`]. I think it makes sense to use the log normal distribution of the fixed pricing, as the histrogram for the WTP for contract length when price was fitted to a normal distribution ranged from `r round(min.EWTP, digits = 2)` to `r round(max.EWTP, digits = 2)`, which seems unreasonable. The WTP histogram using the log normal distribution for price only ranged from `r round(min.EWTP2, digits = 2)` to `r round(max.EWTP2, digits = 2)`, which seems more reasonable since we are talking about changes in fixed pricing electricity rates. 
+
+# Problem 6
+## Assuming an independent log-normal distribution for price, calculate the conditional WTPs and 95% confidence intervals for each individual for contract length. What do you conclude?
+
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+# First, need to define a gmnl model where we have price as log-normal distribution
+Electr$pf.n <- -1*Electr$pf
+GMix.model2 <- gmnl(choice ~ pf.n + cl + loc + wk + tod + seas + asc2 + asc3 + asc4|0,
+                  ranp = c(pf.n = "ln", cl = "n", loc = "n", wk = "n", tod = "n", seas = "n"),
+                  model = "mixl",
+                  R = 1000,
+                  halton = NA,
+                  panel = TRUE,
+                  data = Electr)
+summary(GMix.model2)
+
+```
+
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+# get conditional WTPs
+wtp.cl <- effect.gmnl(GMix.model2, par = "cl",
+                       effect = "wtp", wrt = "pf.n")
+WTP3 <- wtp.cl$mean
+E.WTP3 <- mean(WTP3) # -0.23
+lower.EWTP3 <- quantile(WTP3, .025) # -.94
+upper.EWTP3 <- quantile(WTP3, .975) # 0.41
+
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, cache=TRUE, out.width="0.5\\textwidth"}
+
+# Histogram of conditional WTP
+# log normal distribution for price
+hist(wtp.cl$mean, breaks = "FD", main = "Condtional WTP, log normal distribution for price")
+
+```
+
+The mean conditional willingness to pay for a shorter contract using a normal distrbution for both price and contract length is `r round(E.WTP3, digits = 2)` with a 95% confidence interval ranging from [`r round(lower.EWTP3, digits = 2)` to `r round(upper.EWTP3, digits = 2)`]. We see that knowing someone's preferences for these attributes of the different suppliers, shifts their WTP for a shorter contract length up a bit from `r round(mean.EWTP2, digits = 2)` (unconditional) to `r round(E.WTP3, digits = 2)` (conditonal).
+
+# Problem 7
+## Approximate the heteroskedastic and nested logit models using a normal error components mixed logit model. How do they compare? Use independent random alternative-specific constants to allow heteroskedasticity across alternatives. What do you conclude? Compare the results to the heteroskedastic logit. Use correlated random alternative specific constants to allow nesting and heteroskedasticity. What do you conclude? Compare the results to the nested logit.
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+## Approximate the heteroskedastic logit models using a normal error components mixed logit model
+# Forcing errors across alternatives to be uncorrelated but not have equal variances
+# gives us an approximation to the heteroskedastic model
+Mix.het <- mlogit(choice ~ pf + cl + loc + wk + tod + seas + asc2 + asc3 + asc4|0,
+              rpar = c(pf = "n", cl = "n", loc = "n", wk = "n", tod = "n", seas = "n"),
+              R = 1000,
+              halton = NA,
+              panel = TRUE,
+              data = Electr)
+summary(Mix.het)
+
+```
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+## Approximate the nested logit model using a normal error components mixed logit model
+# Allowing errors to be heteroskedastic and correlated accross disjoint subgroups, we get nested logit
+# Same as mixed logit in problem 1: "Mix.model"
+summary(Mix.model)
+
+```
+
+Although my code wasn't working corrently, I probably incorrectly assumed that the mixed logit model with independent random alternative-specific constants that allowed heteroskedasticity looked like:
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+#Mix.het2 <- mlogit(choice ~ pf + cl + loc + wk + tod + seas + asc2 + asc3 + asc4|1,
+              #rpar = c(pf = "n", cl = "n", loc = "n", wk = "n", tod = "n", seas = "n"),
+              #R = 1000,
+              #halton = NA,
+              #panel = TRUE,
+              #data = Electr)
+
+```
+
+Furthermore, I thought the mixed logit model with random alternative specific constants to allow nesting and heteroskedasticy might look like: 
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+#Mix.nest2 <- mlogit(choice ~ pf + cl + loc + wk + tod + seas + asc2 + asc3 + asc4|1,
+              #rpar = c(pf = "n", cl = "n", loc = "n", wk = "n", tod = "n", seas = "n"),
+              #R = 1000,
+              #correlation = TRUE,
+              #halton = NA,
+              #panel = TRUE,
+              #data = Electr)
+
+```
+
+Although I wasn't able to create these models, I assumed the heteroskedastic logit model would be similar to the random effects model with independent random alternative-specific constants to allow heteroskedasticity across alternatives. Furthermore, I assume the nested logit would be similar to the random effects model that used correlated random alternative specific constants to allow nesting and heteroskedasticity. What I didn't understand was how to allow for correlated errors across alternatives in disjoing subgroups, rather than all alternatives (which is a paired combinatorial logit).
+
+# Problem 8
+## Suppose an individual faces the 4 electricity suppliers given in the study. Based on the previous results (i.e. what you learned from heteroskedasatic, nested, and mixed logit models) will IIA hold in general? What if an individual's random effect is known? Why or why not? Show your work.
+
+Based on the previous results from the heteroskedastic, nested, and mixed logit models I don't thinke IIA would hold. In the heteroskedastic model, the variance of the utility function will differ across alternatives. Therefore, it doesn't seem possible that the same probability ratios of selecting certain alternatives would remain the same after some alternatives were eliminated. It seems as though there would be too much variation in the unconditional choice probability for a certain alternative for the ratio described in equation 21.8 in Davis and De la Maza (2016) to hold after certain alternatives were removed. The same seems true for the nested and mixed logit models. However, IIA should hold if we condition on a single individual as shown in equation 21.9. Next, I will demonstrate how IIA holds for our mixed logit model using data from Huber and Train (2001).
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+## According to the notes, with error components across alternatives, 
+# IIA no longer holds, even if we condition on an individual's random effect.
+# I will use one of the error models to verify this: 
+# the heteroskedastic logit model using a normal error components mixed logit model
+# Need to model this using GLMer so that we can pull out random effects:
+library(arm)
+MixHet.glmer <- glmer(choice ~ pf + cl + loc + wk + tod + seas + asc2 + asc3 + asc4 +
+                        (pf + cl + loc + wk + tod + seas - 1|id),
+                      control = glmerControl(optimizer = "bobyqa",
+                                             optCtrl = list(maxfun = 10000)),
+                      data = Electr,
+                      binomial(link = "logit"))
+summary(MixHet.glmer)
+
+```
+
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+# Testing for IIA when conditioning on an individual
+
+# Get random effect for individual 1
+ranefs.1 <- ranef(MixHet.glmer, condVar = TRUE)$id[1, ]
+ranefs.1 <- unlist(ranefs.1)
+zeros <- rep(0, 4)
+ranefs.1 <- c(zeros, ranefs.1)
+fixefs <- fixef(MixHet.glmer)
+coefs <- fixefs + ranefs.1
+
+# alternatives
+asc1 <- c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+asc2 <- c(0, 1, 0, 0, 0, 0, 0, 0, 0, 0)
+asc3 <- c(0, 0, 1, 0, 0, 0, 0, 0, 0, 0)
+asc4 <- c(0, 0, 0, 1, 0, 0, 0, 0, 0, 0)
+
+# eta
+eta.asc1 <- coefs %*% asc1
+eta.asc2 <- coefs %*% asc2 
+eta.asc3 <- coefs %*% asc3
+eta.asc4 <- coefs %*% asc4
+
+# calculate the probabilities with and without asc4
+# exp eta
+e.asc1 <- exp(eta.asc1)
+e.asc2 <- exp(eta.asc2)
+e.asc3 <- exp(eta.asc3)
+e.asc4 <- exp(eta.asc4)
+tot <- e.asc1 + e.asc2 + e.asc3 + e.asc4
+tot.sub <- e.asc1 + e.asc2 + e.asc3
+
+# unconditional probabilities for all
+p.asc1 <- e.asc1/tot
+p.asc2 <- e.asc2/tot
+p.asc3 <- e.asc3/tot
+p.asc4 <- e.asc4/tot
+
+# unconditional probabilities without asc4
+psub.asc1 <- e.asc1/tot.sub
+psub.asc2 <- e.asc2/tot.sub
+psub.asc3 <- e.asc3/tot.sub
+
+# IIA ren
+p.ratio1    <- p.asc1/p.asc2 #3.34
+psub.ratio1 <- psub.asc1/psub.asc2 # 3.34
+p.ratio2    <- p.asc1/p.asc3 # 1.24
+psub.ratio2 <-psub.asc1/psub.asc3 # 1.24
+
+```
+
+This code was borrowed from Davis and De la Maza (2016) pages 474-475. When considering the ratio of the probability for selecting ASC1 over ASC2, with and without the option of ASC4, we see the ratio constantly remains `r round(p.ratio1, digits = 2)` and `r round(psub.ratio1, digits = 2)`. The same is true when considering the ratio of selecting ASC1 over ASC3, with and without the option of ASC4; the ratio remains `r round(p.ratio2, digits = 2)` and `r round(psub.ratio2, digits = 2)`, respectively. Therefore, we have shown that IIA holds when conditioning on a single invidual for our mixed logit model.
+
+
+# References
+Davis, A., and De la Maza, C. (2016). 19-786 Stochastic Discrete Chioce Models. Carnegie Mellon Univeristy, Lecture Notes.
+
+Huber, J., & Train, K. (2001). On the similarity of classical and Bayesian estimates of individual mean partworths. Marketing Letters, 12(3), 259-269.
+

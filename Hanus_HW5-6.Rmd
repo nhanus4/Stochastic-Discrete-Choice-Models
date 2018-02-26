@@ -1,0 +1,227 @@
+---
+title: "Homework 5-6"
+author: "Nichole Hanus"
+date: "Saturday, December 10, 2016"
+output: pdf_document
+---
+
+## Problem 1. For each of the following statements, briefly explain what Fischhoff means:
+### a. "if we've got questions, then they've got answers"
+
+Subscribers to this philosophy believe that subjects in an experiment are behaving earnestly and have articulated values for all of the measured items. For instance, experimental psychologists would deny demand effects, survey researchers would believe their questions have perfect internal and external validity, and economists would believe their actors will always maximize their fully defined personal utility.
+
+### b. "It is in the nature of paradigms that they provide clearer indications of relative than absolute success"
+
+With this, I believe he means that paradigms allow us to create and scope problems that we can solve with specific methods and objectives. And since methods and objectives that exist within each paradigm have been heavily scrutinized, we as evaluation researchers feel increasingly comfortable with them. However, paradigms aren't good for stepping back and asking, "Is this a good idea?"
+
+### c. "The (nontrivial) antidotes are what might be called looking for trouble and asking for trouble"
+
+Fischhoff (1991) suggests the evaluators should be careful not to overlook the internal consistency of estimates across stimuli that could emerge from mundane details in the experimental design (i.e. specific dollar increments from WTP evaluation) rather than intentional manipulation of a parameter and/or true elicitation of the subjects' articulated values. To prevent such an over-optimistic interpretation of results, Fischhoff suggests significantly varying the way values are elicited or asking open-ended questions about decision-making to allow the "latent incoherence to emerge."
+
+
+### d. "how people think might be relatively invariant with respect to demographic features that are known to make a big difference in what they think"
+
+This statement comes at the close of the section titled Ability to Experiment. In this section, Fischhoff (1991) describes the expense of discerning truly significant results from representative samples in articulated values studies and the difficulty in making comparisons across these studies due to confounding differences. Alternatively, basic values studies rely on convenience sampling and high amounts of replication to justify their multiple testing. I think Fischhoff is saying that focusing on getting representative samples and increasing your power may not actually improve your accuracy in measuring how people work through a specific decision if it's not necessarily sensitive to their demographics.
+
+\break
+
+## Problem 2. What does Orne mean by ecological validity? How does this relate to demand characteristics?
+
+Orne (1962) refers to Brunswik's (1947) definition of ecological validity as the "appropriate generalization from the laboratory to nonexperimental situations." For an experiment to exhibit ecological validity, the experiment setting, methods, and materials must approximate a real-world situation. In an experiment where a subject is displaying demand characteristics, they are consciously aware that they are in an experiment. As we do not go through life thinking every decision we make is part of some grand experiment, a subject that displays demand characteristics is confirming that the experiment doesn't quite maintain ecological validity.
+
+## Problem 3. What is a "good subject" according to Orne?
+
+A "good subject" according to Orne (1962) is one who wants to comply with all of the experimental instructions in order to help the researcher achieve their goal of successfully measuring the outcome of interest. This type of subject wants to help the researcher validate their hypothesis and is, thus, acting according to how they think the experiment should play out.
+
+## Problem 4. Suppose a decision-maker's preferences are characterized by a lexicographic semi-order with just-noticeable-difference parameter $\epsilon$. Under what values of $\epsilon$ will the decision-maker have intransitive preferences when faced with the three alternatives $x, y, z$? Assume that Attribute I occurs before Attribute II in the lexicographic ordering.
+
+$$\left( \begin{array}{ccc}
+ & AttributeI & AttributeII \\
+x & 10\epsilon & 4\epsilon \\
+y & 7\epsilon & 8\epsilon \\
+z & 4\epsilon & 12\epsilon \end{array} \right) 
+$$
+
+First, we set up the difference functions:
+
+\begin{align}
+x \geq y &\Longleftrightarrow \phi_{1}(D_{x1} - D_{y1} > \epsilon) + (1-\phi_{1}(D_{x1} - D_{y1} > \epsilon))\phi_{2}(D_{x2}-D_{y2}) \geq 0  \nonumber \\
+&\Longleftrightarrow \phi_{1}(10-7 > \epsilon) + (1-\phi_{1}(10-7 > \epsilon))\phi_{2}(4-8) \geq 0 \nonumber \\
+&\Longleftrightarrow \phi_{1}(3 > \epsilon) + (1-\phi_{1}(3 > \epsilon))\phi_{2}(-4) \geq 0 \nonumber
+\end{align}
+
+\begin{align}
+y \geq z &\Longleftrightarrow \phi_{1}(D_{y1} - D_{z1} > \epsilon) + (1-\phi_{1}(D_{y1} - D_{z1} > \epsilon))\phi_{2}(D_{y2}-D_{z2}) \geq 0  \nonumber \\
+&\Longleftrightarrow \phi_{1}(7-4 > \epsilon) + (1-\phi_{1}(7-4 > \epsilon))\phi_{2}(8-12) \geq 0 \nonumber \\
+&\Longleftrightarrow \phi_{1}(3 > \epsilon) + (1-\phi_{1}(3 > \epsilon))\phi_{2}(-4) \geq 0 \nonumber
+\end{align}
+
+
+\begin{align}
+z \geq x &\Longleftrightarrow \phi_{1}(D_{z1} - D_{x1} > \epsilon) + (1-\phi_{1}(D_{z1} - D_{x1} > \epsilon))\phi_{2}(D_{z2}-D_{x2}) \geq 0  \nonumber \\
+&\Longleftrightarrow \phi_{1}(4-10 > \epsilon) + (1-\phi_{1}(4-10 > \epsilon))\phi_{2}(12-4) \geq 0 \nonumber \\
+&\Longleftrightarrow \phi_{1}(-6 > \epsilon) + (1-\phi_{1}(-6 > \epsilon))\phi_{2}(8) \geq 0 \nonumber
+\end{align}
+
+\break
+
+We try testing the following values of the just-noticeable-difference parameter $\epsilon$ to determine under which values the decision-maker has intrasitive preferences:
+
+
+| $\epsilon$         | Preferences |
+| :------------    | :----------- | 
+| 1                | x $\geq$ y $\geq$ z | 
+| 2                | x $\geq$ y $\geq$ z |
+| 3                | x $\leq$ y $\leq$ z $\leq$ x | 
+| 4                | x $\leq$ y $\leq$ z $\leq$ x| 
+| 5                | x $\leq$ y $\leq$ z $\leq$ x | 
+| 6                | x $\leq$ y $\leq$ z  | 
+| 7                | x $\leq$ y $\leq$ z  ||
+
+Therefore, we conclude that a decision-maker will have intransitive preferences if $\epsilon = 3, 4,$ or $5$. The decision-maker will have transitive preferences if $\epsilon$ is less than 3 or greater than 5.
+
+## Problem 5. Suppose a decision-maker uses an elimination-by-aspects strategy to make choices. The decision-maker faces the alternatives $x, y, z$ described below with aspects $x', y', z'$. What are $U(\bar{x})$, $U(\bar{y})$, $U(\bar{z})$, $U(\bar{xy})$, $U(\bar{xz})$, and $U(\bar{yz})$? What is $P(x; x,y,z)$ in terms of those utilities of the unique aspect sets? If aspect $\gamma_{1}$ is chosen, what is $P(x|\gamma_{1})$?
+
+\begin{align}
+x' &= \{ \theta_{1}, \theta_{2}, \theta_{3}, \rho_{1}, \rho_{2}, \alpha \} \nonumber \\
+y' &= \{ \theta_{1}, \theta_{2}, \sigma_{1}, \sigma_{2}, \sigma_{3}, \alpha \} \nonumber \\
+z' &= \{ \gamma_{1}, \rho_{1}, \sigma_{1}, \sigma_{2}, \alpha \} \nonumber 
+\end{align}
+
+\begin{align}
+U(\bar{x})  &= u(\theta_{3}) + u(\rho_{2}) \nonumber \\
+U(\bar{y})  &= u(\theta_{3}) \nonumber \\
+U(\bar{z})  &= u(\gamma_{1}) \nonumber \\
+U(\bar{xy}) &= u(\theta_{1}) + u(\theta_{2}) \nonumber \\
+U(\bar{xz}) &= u(\rho_{1}) \nonumber \\
+U(\bar{yz}) &= u(\sigma_{1}) + u(\sigma_{2}) \nonumber
+\end{align}
+
+\begin{align}
+P(x; x,y,z) = \frac{U(\bar{x}) + U(\bar{xy}) P(x,y) + U(\bar{xz}) P(x,z) }{U(\bar{x}) + U(\bar{y}) + U(\bar{z}) + U(\bar{xy}) + U(\bar{xz}) + U(\bar{yz})  } \nonumber
+\end{align}
+
+Where:
+
+\begin{align}
+P(x,y) &= \frac{U(\bar{x})+U(\bar{xz})}{U(\bar{x})+U(\bar{y}) + U(\bar{xy}) + U(\bar{yz})} \nonumber \\
+&= \frac{u(\theta_{3}) + u(\rho_{2}) + u(\rho_{1})}{u(\theta_{3}) + u(\rho_{2}) +u(\theta_{3}) +u(\rho_{1})+ u(\sigma_{1}) + u(\sigma_{2})} \nonumber
+\end{align}
+
+\break
+
+and: 
+
+\begin{align}
+P(x,z) &= \frac{U(\bar{x}) + U(\bar{xy})} {U(\bar{x}) + U(\bar{z}) + U(\bar{xy}) + U(\bar{yz}) } \nonumber \\
+&= \frac{u(\theta_{3}) + u(\rho_{2}) +u(\theta_{1}) + u(\theta_{2})}{u(\theta_{3}) + u(\rho_{2}) + u(\gamma_{1}) + u(\theta_{1}) + u(\theta_{2}) + u(\sigma_{1}) + u(\sigma_{2})}  \nonumber
+\end{align}
+
+then:
+
+\begin{align}
+P(x; T) = \frac{u(\theta_{3}) + u(\rho_{2}) + (u(\theta_{1}) + u(\theta_{2}))\frac{u(\theta_{3}) + u(\rho_{2}) + u(\rho_{1})}{u(\theta_{3}) + u(\rho_{2}) +u(\theta_{3}) +u(\rho_{1})+ u(\sigma_{1}) + u(\sigma_{2})}+u(\rho_{1})\frac{u(\theta_{3}) + u(\rho_{2}) +u(\theta_{1}) + u(\theta_{2})}{u(\theta_{3}) + u(\rho_{2}) + u(\gamma_{1}) + u(\theta_{1}) + u(\theta_{2}) + u(\sigma_{1}) + u(\sigma_{2})}}{u(\theta_{3}) + u(\rho_{2})+u(\theta_{3})+u(\gamma_{1})+u(\theta_{1}) + u(\theta_{2})+u(\rho_{1})+u(\sigma_{1}) + u(\sigma_{2})} \nonumber
+\end{align}
+
+Where $T = {x,y,z}$.
+
+Finally, $P(x|\gamma_{1}) = 0$.
+
+## Problem 6. Suppose a decison-maker has random-walk subjective expected utility theory preferences. The average valence differences $d_{RL} = 2$. Under what conditions will this decision-maker's preferences change, on average, under time pressure? What if we had $d_{RL} = -2$?
+
+The random-walk subjective expected utility theory allows for initial biases, which are depicted as $z$ or $P(n-1)$ in the following equation for a preference update:
+
+\begin{align}
+P(n) = P(n-1) + d_{RL} + \eta_{n} \nonumber
+\end{align}
+
+Then:
+
+\begin{align}
+P(n) = z + d_{RL} + \eta_{n} \nonumber
+\end{align}
+
+If $z$ and $d_RL$ are opposite signs, preferences will tend to reverse overtime. This suggests that stopping someone early with time pressure can reverse their decision. Therefore, if someone has an initial bias for the "left" decision and their initial bias value was negative (e.g. -2), but their average valance difference is +2, then stopping them early with time pressure may result in a reported preference for L. The opposite is true if their average valence difference is $d_RL = -2$. Therefore, their initial bias would have to be positive (e.g. +2) and in favor of R for time pressure to result in a change in preference (e.g. they select R) when they have a negative average valence difference.
+
+## Problem 7. Suppose we have an experimental design described by the table below, where each factor has two levels. What is the design's defining relation? What is the designs's strength? Now suppose we have two alternatives. Use this to generate a rotation design that is D-optimal.
+
+$$ \left(\begin{array}
+{cccc}
+A & B & C & D  \\
+0 & 0 & 0 & 0  \\
+0 & 0 & 1 & 1  \\ 
+0 & 1 & 0 & 1  \\ 
+0 & 1 & 1 & 0  \\ 
+1 & 0 & 0 & 1  \\ 
+1 & 0 & 1 & 0  \\ 
+1 & 1 & 0 & 0  \\ 
+1 & 1 & 1 & 1  \\ 
+\end{array}\right)
+$$
+
+From inspection, we can tell that one of the main effects are directly confounded with each other. There are 6 two-way interactions, which yield the following generating relations:
+
+\begin{align}
+A &= BCD \nonumber \\
+B &= CDA \nonumber \\
+C &= DAB \nonumber \\
+D &= ABC \nonumber
+\end{align}
+
+The generating relations are then:
+
+\begin{align}
+I = BCDA = CDAB = DABC = ABCD \nonumber
+\end{align}
+
+Therfore, I think the defining relation is $I = ABCD$. 
+
+Following the Davis and De la Maza (2016) lecture notes on pg. 609, I believe this is a strength 2 (resolution 3) $2^{4-1}$ design. Similar to the example on pg. 609, the ordered pair (0,0) appears in columns $A,B$ two times and $n_{0A}$ and $n_{0B}$ both equal 4. 
+
+Next, we use "support.CEs" to generate a rotation design with two alternatives that is D-optimal.
+
+```{r, include=FALSE, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+## Set the directory
+setwd("C:/Users/hanusnil/Dropbox/S11. 19-786 Stochastic Discrete Choice Models/Homework 5")
+
+## for pretty tables
+install.packages("support.CEs", repos = "http://cran.us.r-project.org")
+library(support.CEs) 
+
+```
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE, fig.align='center'}
+
+A <- c(0,0,0,0,1,1,1,1)
+B <- c(0,0,1,1,0,0,1,1)
+C <- c(0,1,0,1,0,1,0,1)
+D <- c(0,1,1,0,1,0,0,1)
+
+alt1 <- cbind(A, B, C, D)
+
+
+des1 <- rotation.design(alt1,
+                        attribute.names = list(att1 = c(0,1), att2 = c(0,1)),
+                        nalternatives = 2,
+                        nblocks = 1,
+                        row.renames = FALSE,
+                        randomize = FALSE)
+print(des1)
+
+```
+
+## References
+Brunswik, E. (1947). Systematic and representative design of psychological experiments with results in physical and
+social perception. Syllabus Series, No. 304. 
+
+Davis, A., and De la Maza, C. (2016). 19-786 Stochastic Discrete Chioce Models. Carnegie Mellon Univeristy, Lecture Notes.
+
+Fischhoff, B. (1991). Value elicitation: Is there anything in there?. American psychologist, 46(8), 835.
+
+Orne, M. T. (1962). On the social psychology of the psychological experiment: With particular reference to demand characteristics and their implications. American psychologist, 17(11), 776.
+
+
+
+
+
